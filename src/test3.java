@@ -1,24 +1,19 @@
+import com.ecpss.util.MerchantX509Cert;
+import org.apache.commons.codec.binary.Hex;
+import vpn.SYXPayMessage;
+import vpn.SYXPayUtil;
+
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.List;
-
-import org.apache.commons.codec.binary.Hex;
-
-import vpn.PayClubMessage;
-import vpn.PayClubUtil;
-
-import com.ecpss.action.TemporarySynThread;
-import com.ecpss.util.AES;
+import java.util.Date;
 
 
-  
-/**  
- * @version 1.0 功能 ：釆用3DES标准以模式为ECB、填充方式为PKCS7加密数据  
- */  
-public class test3    
-{   
- public static void main(String[] args) {
+/**
+ * @version 1.0 功能 ：釆用3DES标准以模式为ECB、填充方式为PKCS7加密数据
+ */
+public class test3
+{
+	public static void main(String[] args) throws Exception {
 		/*Calendar calendarUrl3 = Calendar.getInstance();// 此时打印它获取的是系统当前时间
 		calendarUrl3.add(Calendar.DATE,-1); // 得到一天前
 		String onedate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
@@ -29,21 +24,63 @@ public class test3
 						+ AES.setCarNo(cardNo)+"') and substr(t.tradestate,1,1)='0' and t.tradeTime>to_date('"
 			+ onedate + "','yyyy-MM-dd hh24:mi:ss')";
 		System.out.println(sql);*/
-/*	 	IPassPayTemporMessage trade = new IPassPayTemporMessage();
+	 	/*IPassPayTemporMessage trade = new IPassPayTemporMessage();
 	 	IpassPayTemporary tt = new IpassPayTemporary();
-	 	trade.setOrderNo("739747");
-	 	trade.setRes_orderStatus("1");
+	 	trade.setOrderNo("00000");
+	 	trade.setRes_orderStatus("4");
 	 	trade.setRemark("Payment Success!");
 	 	tt.get(trade);*/
+		SYXPayMessage syx=new SYXPayMessage();
+		SYXPayUtil syxp=new SYXPayUtil();
+		syx.setV_mid("20051");
 
+		Date currentTime = new Date();
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");
+		String dateString = formatter.format(currentTime);
+
+		syx.setV_oid(dateString+"-"+syx.getV_mid()+"-"+"123");
+		syx.setV_rcvname("123");
+		syx.setV_rcvaddr("1851 Kooter Lane");
+		syx.setV_rcvtel("704-429-6436");
+		syx.setV_rcvpost("28262");
+		syx.setV_amount("66.06");
+		syx.setV_ymd(dateString);
+		syx.setV_orderstatus("1");
+		syx.setV_ordername("cczz");
+		syx.setV_moneytype("1");
+		syx.setV_url("");
+		String pfxFile = "F:/cfca_private_7606.pfx";//商户私钥文件路径
+		String pfxPassword = "lh121121";
+		String aliasPassword = "lh121121";
+		String aliasName = "{3dfcbb2d-bb3d-4350-9010-33de8cdb076c}";
+
+		String certPath = "F:/payease_cfca.cer";
+		String src = syx.getV_moneytype() + syx.getV_ymd() + syx.getV_amount() + syx.getV_rcvname() + syx.getV_oid() + syx.getV_mid() + syx.getV_url();
+		String sign= MerchantX509Cert.sign(src, pfxFile, aliasName, pfxPassword, aliasPassword);
+		syx.setV_pmode("17");
+		syx.setV_card_holder("cczz");
+		syx.setV_card_no("4111111111111111");
+		syx.setV_expire_m("09");
+		syx.setV_expire_y("21");
+		syx.setV_card_cvv2("123");
+		syx.setV_ordip("94.23.35.125");
+		syx.setV_billstreet("1851 Kooter Lane");
+		syx.setV_billcity("Charlotte");
+		syx.setV_billstate("");
+		syx.setV_billcountry("");
+		syx.setV_billpost("");
+		syx.setV_billphone("");
+		syx.setV_billemail("");
+
+		syxp.get(syx);
 	 /*TemporarySynThread ts=new TemporarySynThread("https://api.mch.weixin.qq.com/pay/queryexchagerate","320986", "1","Payment Success!");
 	 ts.start();*/
-	 	PayClubMessage msg=new PayClubMessage();
+	 	/*PayClubMessage msg=new PayClubMessage();
 		PayClubUtil yu=new PayClubUtil();
 		msg.setP_mid("81129");
 		msg.setP_account_num("40000310");
-		/*msg.setP_mid("81094");
-		msg.setP_account_num("40000148");*/
+		msg.setP_mid("81094");
+		msg.setP_account_num("40000148");
 		msg.setP_transaction_type("SALE");
 		msg.setP_order_num("12345678974156");
 		msg.setP_currency("USD");
@@ -58,8 +95,8 @@ public class test3
 		msg.setP_user_email("index2@gmail.com");
 		msg.setP_user_phone("704-429-6436");
 		msg.setP_user_ipaddress("94.23.35.125");
-		msg.setP_trans_url("www.sfepay.com");
-		msg.setP_return_url("www.sfepay.com");
+		msg.setP_trans_url("https://www.sfepay.com");
+		msg.setP_return_url("https://www.sfepay.com");
 		msg.setP_bill_country("US");
 		msg.setP_bill_state("Alabama");
 		msg.setP_bill_city("Charlotte");
@@ -75,35 +112,41 @@ public class test3
 		msg.setP_product_name("phone");
 		msg.setP_product_num("1");
 		msg.setP_product_desc("iphone XS");
-		
-		
+
+
 		//'mid','site_id','order_id','order_amount','order_currency','api_key'.
 		String key = "R2066dBx40lbbzj";
 //		String key = "vf6nljz0f0x08N4";
 		String sign=msg.getP_mid().trim()+msg.getP_account_num().trim()+msg.getP_order_num().trim()+msg.getP_currency().trim()+msg.getP_amount().trim()+key.trim();
-		String strDes = getSha256(sign.trim()); 
+		String strDes = getSha256(sign.trim());
 		msg.setP_signmsg(strDes.toUpperCase());
 		//msg.setBillingstate("Alabama");
-					
-		yu.get(msg);
+
+		yu.get(msg);*/
+		/*HttpSPostCust httpsPost=new HttpSPostCust();
+		Map map=new HashMap();
+		map.put("123", "321312");
+		String getData="32131";
+		String url="https://int1.payclub.com/payment_test.jsp";
+		httpsPost.http_Post(map, url,getData);*/
 /*	 TemporarySynThread ts=new TemporarySynThread("http://www.jjqsc.com/PayResult.php","320981", "1","Payment Success!");
 	 ts.start();*/
 /*	 testPayUtil tt = new testPayUtil();
 	 WRPayMessage trade = new WRPayMessage();
-	 tt.get(trade);*/ 
+	 tt.get(trade);*/
 /*	 	IPassPayMessage msg=new IPassPayMessage();
 		IPassPayUtil yu=new IPassPayUtil();
 		msg.setMid("20331");
 		msg.setOid("1234567891011");
 		msg.setSite_id("370");
-		msg.setOrder_amount("80.68");	
-		
+		msg.setOrder_amount("80.68");
+
 		msg.setOrder_currency("USD");
 		//'mid','site_id','order_id','order_amount','order_currency','api_key'.
 		String sign=msg.getMid().trim()+msg.getSite_id().trim()+msg.getOid().trim()+msg.getOrder_amount().trim()+msg.getOrder_currency().trim()+"B4ecJuvYKrlQseap57BzqOYbh";
-		String strDes = getSha256(sign); 
+		String strDes = getSha256(sign);
 		msg.setHash_info(strDes);
-		
+
 		msg.setCard_no("4111111111111111");
 		msg.setCard_ex_month("03");
 		msg.setCard_ex_year("25");
@@ -124,22 +167,22 @@ public class test3
 		msg.setGateway_version("1.0");
 		UUID uuid2 = UUID.randomUUID();
 		msg.setUuid(uuid2.toString());
-		
+
 		JSONObject json = new JSONObject();
 		json.put("name", "nike air");
 		json.put("price", "80.68");
 		json.put("num", "1");
-					
+
 		//msg.setBillingstate("Alabama");
-					
+
 		yu.get(msg);*/
 	 	/*ZMTPayMessage msg=new ZMTPayMessage();
 		ZMTPayUtil yu=new ZMTPayUtil();
 		msg.setMerNo("1002");
 		msg.setBillNo("1234567891011");
 		msg.setPayCurrency("USD");
-		msg.setAmount("80.68");	
-		
+		msg.setAmount("80.68");
+
 		msg.setCurrency("15");
 		msg.setWebsite("firstshop.com");
 		msg.setIe_language("EN");
@@ -148,41 +191,41 @@ public class test3
 		json.put("name", "nike air");
 		json.put("price", "80.68");
 		json.put("num", "1");
-					
+
 		msg.setET_GOODS("["+json.toString()+"]");//json数组
-		
+
 		msg.setRemark("sfepay");
-		
+
 		msg.setCardNo("4111111111111122");
 		msg.setCardExpireMonth("09");
 		msg.setCardExpireYear("2026");
-		
-		
-		
+
+
+
 		msg.setFirstName("ci");
 		msg.setLastName("zg");
 		msg.setAddress("1851 Kooter Lane");
 		msg.setCity("Charlotte");
 		msg.setIp("94.23.35.125");
-		
+
 		msg.setCvv2("036");
 		msg.setZip("28262");
 		msg.setCountry("US");//待定
 		msg.setEmail("index2@gmail.com");
 		msg.setPhone("704-429-6436");
-		
+
 
 		msg.setIssuingBank("bank");
 
 		String sign=msg.getMerNo().trim()+msg.getBillNo().trim()+msg.getAmount().trim()+msg.getCurrency().trim()+msg.getCardNo().trim()+msg.getCardExpireMonth().trim()+msg.getCardExpireYear().trim() + msg.getFirstName().trim() + msg.getLastName().trim()+msg.getAddress().trim()+msg.getCity().trim()+msg.getIp().trim()+msg.getCvv2().trim()+msg.getZip().trim()+msg.getCountry().trim()+msg.getEmail().trim()+msg.getPhone().trim()+msg.getIssuingBank().trim()+"SyVIB_wW";
-		String strDes = getSha256(sign); 
+		String strDes = getSha256(sign);
 		msg.setSHA256info(strDes);
-		
+
 		msg.setBillingstate("Alabama");
-					
+
 		yu.get(msg);*/
-	 
-	 
+
+
  	 /*MessageDigest md6;
  		BASE64Encoder base64en = new BASE64Encoder();
  		try {
@@ -191,11 +234,11 @@ public class test3
  					.getBytes("utf-8")));
  			System.out.println(passwords);
  		} catch (Exception e) {
- 			  
+
  			e.printStackTrace();
  		}
  	 MD5 md5=new MD5();
- 	 
+
  	 String md5src = "gE{Lq_TD";
  	 System.out.println(md5.getMD5ofStr(md5src));*/
 	/* DirectCarderInfoAction aa = new DirectCarderInfoAction();
@@ -203,7 +246,7 @@ public class test3
 	String email = "Mbluege@arcor.de";
 	String ip  = "87.189.32.122";
 	 HashMap hm = new HashMap();
-	String phone = "4917632586197"; 
+	String phone = "4917632586197";
 	String country = "DEUDE";
 	String city ="Hamburg";
 	String state = "Hamburg";
@@ -211,7 +254,7 @@ public class test3
 	String backCardnum6 = "490744";
 	String cardbank ="";
 	long id = 1564189163L;
-	
+
 		// 加密串 license_key : UxQh0mA4aLqw 调试和正式运行时要加上,才会返回分数
 		// 上海key: CxsRZ1xPPRbR;
 		// 广州key: UxQh0mA4aLqw
@@ -243,8 +286,7 @@ public class test3
 		String bankCountry = (String) ht.get("bankCountry");
 		String bankPhone = (String) ht.get("bankPhone");
 		//logger.info("maxmindValue--------------" + maxmindValue);
-*/	 
-	 
+*/
 		/*GQPayMessage msg=new GQPayMessage();
 		GQPayUtil yu=new GQPayUtil();
 		msg.setMode("Api");
@@ -256,17 +298,17 @@ public class test3
 		msg.setIPAddress("73.235.128.136");
 		msg.setCurrency("CNY");
 		// "70227403" + "123456" + "index@gmail.com" + "CNY" + "80.46" + "0.00" + "0.00" + "0.00" + "VKf0MK02O8iYewkb";
-		
-		msg.setAmount("80.66");	
+
+		msg.setAmount("80.66");
 		MD5 md5=new MD5();
 		String md5Hash = msg.getAppId() + msg.getOrderId() + msg.getEmail() + msg.getCurrency() + msg.getAmount() + "VKf0MK02O8iYewkb";
 		msg.setSignature(md5.getMD5ofStr(md5Hash));
 		//msg.setSignature("33C650F472B259FB658EDAD495896A49");
 		msg.setProductSku1("ProductSku1");
-		msg.setProductName1("nike max 7");	
+		msg.setProductName1("nike max 7");
 		msg.setProductPrice1("80.66");
 		msg.setProductQuantity1("1");
-		
+
 		msg.setShippingFirstName("ccc");
 		msg.setShippingLastName("zzz");
 		msg.setShippingCountry("US");
@@ -275,7 +317,7 @@ public class test3
 		msg.setShippingAddress1("nn456");
 		msg.setShippingZipcode("84000");
 		msg.setShippingTelephone("15574873272");
-		
+
 		msg.setBillingFirstName("ccc");
 		msg.setBillingLastName("zzz");
 		msg.setBillingCountry("US");
@@ -291,8 +333,8 @@ public class test3
 		msg.setCreditCardCsc2("035");
 
 		yu.get(msg);*/
-	 
-	 
+
+
 	 /* WPPayUtil tt = new WPPayUtil();
 	 WPPayMessage t = new WPPayMessage();
 	 t.setMerchantMID("4521");
@@ -317,7 +359,7 @@ public class test3
 	 t.setShippingCity("newyork");
 	 t.setShippingSstate("newyork");
 	 t.setShippingCountry("USAUS");
-	 
+
 	 t.setFirstname("CCC");
 	 t.setLastname("ZZZ");
 	 t.setEmail("index@gmail.com");
@@ -330,14 +372,14 @@ public class test3
 	 t.setIpAddr("172.58.15.24");
 	 t.setProducts("nike max");
 	 tt.get(t);*/
-	 
+
 	 /* testPayUtil tt = new testPayUtil();
 	 WRPayMessage trade = new WRPayMessage();
 	 tt.get(trade);*/
 	 /*testPayUtil tt = new testPayUtil();
 	 WRPayMessage trade = new WRPayMessage();
 	 tt.get(trade);*/
- 	/* WRPayMessage wrp = new WRPayMessage();
+ 	 /*WRPayMessage wrp = new WRPayMessage();
  	 WRPayUtil wu = new WRPayUtil();
  	 wrp.setTransType("sales");
  	 wrp.setApiType("1");
@@ -511,25 +553,25 @@ public class test3
               ex.printStackTrace();
           }
       }*/
-     // return result;
-  }    
- 	
- public static String getSha256(String strData) {
-	 String output = "";
-     try {
-       MessageDigest digest = MessageDigest.getInstance("SHA-256");
-       byte[] hash = digest.digest(strData.getBytes("UTF-8"));
-       output = Hex.encodeHexString(hash);
-       System.out.println(output);
-      } catch (Exception e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
-    return output;
-}
- 
- 
+		// return result;
+	}
+
+	public static String getSha256(String strData) {
+		String output = "";
+		try {
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			byte[] hash = digest.digest(strData.getBytes("UTF-8"));
+			output = Hex.encodeHexString(hash);
+			System.out.println(output);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return output;
+	}
+
+
 }
 
-  
+
 //}  
