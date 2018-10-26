@@ -17,6 +17,7 @@ import jxl.Sheet;
 import jxl.Workbook;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -61,6 +62,20 @@ public class GouduiAction extends BaseAction{
 	private List<InternationalTradeinfo> echoList = new ArrayList<InternationalTradeinfo>();
 	private List<InternationalTradeinfo> excptionList = new ArrayList<InternationalTradeinfo>();
 	
+	private String stime;
+	private String etime;
+	public String getStime() {
+		return stime;
+	}
+	public void setStime(String stime) {
+		this.stime = stime;
+	}
+	public String getEtime() {
+		return etime;
+	}
+	public void setEtime(String etime) {
+		this.etime = etime;
+	}
 	
 	/**
 	 * 上传文件
@@ -392,6 +407,9 @@ public class GouduiAction extends BaseAction{
 			if(card.getCardNo()!=null && !card.getCardNo().equals("")){
 				sb.append(" AND card.cardNo='"+card.getCardNo().trim()+"'");
 			}
+			if(StringUtils.isNotBlank(etime) && StringUtils.isNotBlank(stime)){
+				sb.append(" AND trade.tradeTime between to_date('"+stime+"','yyyy-MM-dd hh24:mi:ss') and to_date('"+etime+"','yyyy-MM-dd hh24:mi:ss')");
+			}
 			sb.append(" order by trade.tradeTime asc ");
 			
 			hql = sb.toString();
@@ -449,6 +467,45 @@ public class GouduiAction extends BaseAction{
 			return SUCCESS;
 			//this.messageAction = "勾兑失败";
 			//return this.OPERATE_SUCCESS;
+		}
+	}
+	/**
+	 * 勾兑操作1
+	 */
+	public String goudui1(){
+		System.out.println("进入全部勾选方法中");
+		try{
+			if(merchant.getMerno()!=null){//根据商户号和时间段进行操作
+				//查询商户号所对应的商户id
+				String sql="select b.id from INTERNATIONAL_MERCHANT b where b.merno='"+merchant.getMerno()+"'";
+				InternationalMerchant mer=(InternationalMerchant) commonService.uniqueResult("from InternationalMerchant where merno='"+merchant.getMerno()+"'");
+				if(mer!=null){
+					long merchantId=mer.getId();
+					String hql1="update international_tradeinfo t set"
+							+ " t.tradestate=substr(t.tradestate,1,4)||'1'||substr(t.tradestate,6, length(t.tradestate)-5)"
+							+ " where t.tradeTime between to_date('"+stime+"','yyyy-MM-dd hh24:mi:ss') and to_date('"+etime+"','yyyy-MM-dd hh24:mi:ss') "
+									+ "and t.merchantId='"+merchantId+"'"
+									+"and substr(t.tradeState,1,1) in (0,1,5) AND substr(t.tradeState,5,1)='0'";
+					hql=hql1;
+				}else{
+					this.flag = "3";//商户号错误
+					return SUCCESS;
+				}
+			}
+			else{//只根据时间段进行操作
+				String hql2="update international_tradeinfo t set"
+						+ " t.tradestate=substr(t.tradestate,1,4)||'1'||substr(t.tradestate,6, length(t.tradestate)-5)"
+						+ " where t.tradeTime between to_date('"+stime+"','yyyy-MM-dd hh24:mi:ss') and to_date('"+etime+"','yyyy-MM-dd hh24:mi:ss')"
+						+"and substr(t.tradeState,1,1) in (0,1,5) AND substr(t.tradeState,5,1)='0'";
+				hql=hql2;
+			}
+			commonService.deleteBySql(hql);
+			this.flag = "1";//修改成功
+			return SUCCESS;
+		}catch(Exception e){
+			e.printStackTrace();
+			this.flag = "2";//系统出现错误
+			return SUCCESS;
 		}
 	}
 	/**
@@ -539,7 +596,8 @@ public class GouduiAction extends BaseAction{
 	}
 
 	/**
-	 * @param chann the chann to sett
+	 * @param chann the chann to set
+t
 	 */
 	public void setChann(InternationalChannels chann) {
 		this.chann = chann;
@@ -655,3 +713,4 @@ public class GouduiAction extends BaseAction{
 		this.flag = flag;
 	}
 }
+
