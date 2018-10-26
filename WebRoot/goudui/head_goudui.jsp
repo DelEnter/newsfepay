@@ -6,6 +6,7 @@
   	<%@ include file="../util/checkAll.jsp" %>
   	<LINK href="../css/head.css" type=text/css rel=stylesheet>
   	<%@ taglib prefix="pages" uri="/xs-pages"%>
+  	 <%@ include file="../include/dialog.jsp"%>
     <%@ include file="../../util/pageUtil.jsp"%>
  
     <title>手工勾兑</title>
@@ -15,7 +16,7 @@
 	function buchongxinxi(tradeid){
 		window.showModalDialog ("../PaySystem/toinputFulInfo.action?tradeId="+tradeid, window,'dialogHeight:630px;dialogWidth:593px;toolbar:yes;menubar:yes;scroll:yes;resizable:yes;location:yes;status:yes') ;
 	}	
-	<!-- 判断开始是否大于结束时间 -->
+	//判断开始是否大于结束时间
     function checkTime(){
     	var time1= dojo.widget.byId("startTime");
     	var startTime = time1.getValue();
@@ -28,25 +29,40 @@
    		}
     }
     
-   	<!-- 检验是否选上需要处理的选项 -->
+   	// 检验是否选上需要处理的选项 
 	function check(){
-		var workorderObjectNos = document.getElementsByName('disposeId');
-		var gets = new Array();
-		var k = 0;
-		var result = 0;
-		for(var i=0; i<workorderObjectNos.length; i++){
-			if(workorderObjectNos[i].checked){
-			  // alert("第" + i + "个值：" + workorderObjectNos[i].value);
-			    gets[k] = workorderObjectNos[i].value;
-			    result =  gets[k];
-   				k++;
-			}
- 		}
- 		if(result==0){
-			alert("请选上勾兑的选项！");
+   		var stime=document.getElementById("stime").value;
+   		var etime=document.getElementById("etime").value;
+   		var bj=document.getElementById("bj").value;
+		if(bj=="1"){
+			if(etime!=null && stime!=null && stime<etime){
+				form1.action="goudui1";
+				form1.submit();
+	   		}else{
+				alert("选择正确的时间!");
+	   		}
 		}else{
-			form1.action="goudui";
-			form1.submit();
+			var workorderObjectNos = document.getElementsByName('disposeId');
+			var gets = new Array();
+			var k = 0;
+			var result = 0;
+			for(var i=0; i<workorderObjectNos.length; i++){
+				if(workorderObjectNos[i].checked){
+				  // alert("第" + i + "个值：" + workorderObjectNos[i].value);
+				    gets[k] = workorderObjectNos[i].value;
+				    result =  gets[k];
+	   				k++;
+				}
+	 		}
+	 		if(result==0){
+				alert("请选上勾兑的选项！");
+				if(stime!=null && etime!=null && stime>etime){
+		   			alert("开始时间大于结束时间!");
+		   		}
+			}else{
+				form1.action="goudui";
+				form1.submit();
+			}
 		}
 	}
 	</SCRIPT>
@@ -58,7 +74,7 @@
   			<tr>
   				<td>商户号</td>
   				<td>
-  					<s:textfield name="merchant.merno"/>
+  					<s:textfield theme="simple" name="merchant.merno" type="text"/>
   				</td>
   				<td>支付情况</td>
 	 			<td>
@@ -66,14 +82,14 @@
 		 		</td>
 		 		<td>卡号</td>
   				<td>
-  					<s:textfield name="card.cardNo"></s:textfield>
+  					<s:textfield theme="simple" name="card.cardNo" type="text"/>
   				</td>
   			</tr>
   			
   			<tr>
   				<td>授权号</td>
 		 		<td>
-		 			<s:textfield name="trade.VIPAuthorizationNo"/>
+		 			<s:textfield theme="simple" name="trade.VIPAuthorizationNo" type="text"/>
 		 		</td>
 		 		<td>支付通道</td>
 	 			<td>
@@ -81,20 +97,32 @@
 				</td>
 				<td>交易流水订单号</td>
 		 		<td>
-		 			<s:textfield name="trade.orderNo"/>
+		 			<s:textfield theme="simple" name="trade.orderNo" type="text"/>
 		 		</td>
   			</tr>
   			<tr>
   				<td>终端号</td>
   				<td>
-  					<s:textfield name="trade.VIPTerminalNo"/>
+  					<s:textfield theme="simple" name="trade.VIPTerminalNo" type="text"/>
+  				</td>
+  			</tr>
+  			<tr>
+  				<td>StarTime：</td>
+  				<td>
+  					<input id="stime" type="text" name="stime" ondblclick="cleanDate(this.id)" size="15" value="<s:property value='stime'/>"/>
+  				</td>
+  				<td>EndTime：</td>
+  				<td>
+  					<input id="etime" type="text" name="etime" ondblclick="cleanDate(this.id)" size="15" value="<s:property value='etime'/>"/>
   				</td>
   			</tr>
   		</table>
   	   	<table align="center">
   	   		<tr>
+  	   			<td>
+  					<input type="button" value="确定勾兑" onclick="check()"/>
+  				</td>
   				<td>
-  					<!--  <input type="button" value="查询" onclick="checkTime()">-->
   					<input type="submit" value="查询"/>
   				</td>
   				<td>
@@ -106,6 +134,7 @@
 			bgColor=#ffffff borderColorLight=#000000 border=1 height="10">
 	   		<tr bgColor=#cccccc align=center>
 	   			<td>
+  					<input type="hidden" id="bj" value="0" />
   					<input type="checkbox" onclick='chkall("form1",this)' name=chk>
   				</td>
     			<td>商户号</td>
@@ -184,7 +213,6 @@
     			<td>
     				<input type="button" value="确定勾兑" onclick="check()"/>
     			</td>
-    			
     		</tr>
     		<tr bgColor=#ffffff>
 				<td colspan="30">
@@ -193,6 +221,14 @@
 				</td>
 		   </tr>
     	</table>	
+    	<script language="javascript" type="text/javascript">
+
+    	loadcalendar('stime', 'stime', '%Y-%m-%d', false, true, "cn");
+        loadcalendar('etime', 'etime', '%Y-%m-%d', false, true, "cn");
+            function cleanDate(vid){
+            	document.getElementById(vid).value="";
+            }
+        </script>
     </s:form>
     <script language="javascript">	
 		var temflag='<s:property value='flag'/>';
@@ -200,6 +236,8 @@
 			alert("勾兑成功!");
 		}else if(temflag==2){
 			alert("系统出现异常!");
+		}else if(temflag==3){
+			alert("商户号错误!");
 		}		
 	</script>	
   </body>
