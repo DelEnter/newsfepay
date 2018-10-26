@@ -66,11 +66,11 @@ public class test3
 		syx.setV_ordip("94.23.35.125");
 		syx.setV_billstreet("1851 Kooter Lane");
 		syx.setV_billcity("Charlotte");
-		syx.setV_billstate("");
-		syx.setV_billcountry("");
-		syx.setV_billpost("");
-		syx.setV_billphone("");
-		syx.setV_billemail("");
+		syx.setV_billstate("Alabama");
+		syx.setV_billcountry("US");
+		syx.setV_billpost("28262");
+		syx.setV_billphone("704-429-6436");
+		syx.setV_billemail("index@gmail.com");
 
 		syxp.get(syx);
 	 /*TemporarySynThread ts=new TemporarySynThread("https://api.mch.weixin.qq.com/pay/queryexchagerate","320986", "1","Payment Success!");

@@ -1,18 +1,18 @@
 package vpn;
 
 
+import java.io.InputStream;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import com.ecpss.util.SAXParser;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.lang.StringUtils;
@@ -22,6 +22,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -61,7 +62,7 @@ public class SYXPayUtil{
 	 NameValuePair v_expire_m  = new BasicNameValuePair("v_expire_m",trade.getV_expire_m());
 	 NameValuePair v_expire_y  = new BasicNameValuePair("v_expire_y",trade.getV_expire_y());
 	 NameValuePair v_card_cvv2  = new BasicNameValuePair("v_card_cvv2",trade.getV_card_cvv2());
-	 NameValuePair v_ordip  = new BasicNameValuePair("v_ordip",trade.getV_oid());
+	 NameValuePair v_ordip  = new BasicNameValuePair("v_ordip",trade.getV_ordip());
 	 NameValuePair v_billstreet  = new BasicNameValuePair("v_billstreet",trade.getV_billstreet());
 	 NameValuePair v_billcity  = new BasicNameValuePair("v_billcity",trade.getV_billcity());
 	 NameValuePair v_billstate  = new BasicNameValuePair("v_billstate",trade.getV_billstate());
@@ -69,6 +70,41 @@ public class SYXPayUtil{
 	 NameValuePair v_billcountry  = new BasicNameValuePair("v_billcountry",trade.getV_billcountry());
 	 NameValuePair v_billphone  = new BasicNameValuePair("v_billphone",trade.getV_billphone());
 	 NameValuePair v_billemail  = new BasicNameValuePair("v_billemail",trade.getV_billemail());
+
+	 Map<String,String> map2 = new HashMap();
+	 	map2.put("v_mid",trade.getV_mid());
+		map2.put("v_oid",trade.getV_oid());
+		map2.put("v_rcvname",trade.getV_rcvname());
+		map2.put("v_rcvaddr",trade.getV_rcvaddr());
+		map2.put("v_rcvtel",trade.getV_rcvtel());
+		map2.put("v_rcvpost",trade.getV_rcvpost());
+
+		map2.put("v_amount",trade.getV_amount());
+		map2.put("v_ymd",trade.getV_ymd());
+		map2.put("v_orderstatus",trade.getV_orderstatus());
+		map2.put("v_ordername",trade.getV_ordername());
+		map2.put("v_moneytype",trade.getV_moneytype());
+		map2.put("v_url",trade.getV_url());
+
+		map2.put("v_md5info",trade.getV_md5info());
+		map2.put("v_pmode",trade.getV_pmode());
+		map2.put("v_card_holder",trade.getV_card_holder());
+		map2.put("v_card_no",trade.getV_card_no());
+		map2.put("v_expire_m",trade.getV_expire_m());
+		map2.put("v_expire_y",trade.getV_expire_y());
+
+		map2.put("v_card_cvv2",trade.getV_card_cvv2());
+		map2.put("v_ordip",trade.getV_ordip());
+		map2.put("v_billstreet",trade.getV_billstreet());
+		map2.put("v_billcity",trade.getV_billcity());
+		map2.put("v_billstate",trade.getV_billstate());
+		map2.put("v_billpost",trade.getV_billpost());
+
+		map2.put("v_billcountry",trade.getV_billcountry());
+		map2.put("v_billphone",trade.getV_billphone());
+		map2.put("v_billemail",trade.getV_billemail());
+
+
 	
 		List<NameValuePair> nvps1 = new ArrayList<NameValuePair>();
 		nvps1.add(v_mid);
@@ -100,7 +136,9 @@ public class SYXPayUtil{
 		nvps1.add(v_billcountry);
 		nvps1.add(v_billphone);
 		nvps1.add(v_billemail);
-				
+
+		this.doGet(map2,nvps1);
+
 		List<NameValuePair> nvps2 = new ArrayList<NameValuePair>();
 
 		nvps2.add(v_mid);
@@ -133,7 +171,7 @@ public class SYXPayUtil{
 		nvps2.add(v_billphone);
 		nvps2.add(v_billemail);
 		
-		try{
+		/*try{
 			PayClubUtil h = new PayClubUtil();
 			logger.info("提交数据:"+nvps2.toString());
 			String result = h.httpPost(nvps1,postUrl);
@@ -175,7 +213,7 @@ public class SYXPayUtil{
             	trade.setV_pstring("");
             	trade.setV_pstatus("");
 			}
-		}
+		}*/
 	}
 	public String httpPost(List<NameValuePair> nvps, String url)
 			throws Exception {
@@ -245,5 +283,45 @@ public class SYXPayUtil{
 				registry);
 		return new DefaultHttpClient(mgr, client.getParams());
 	}
-	
+
+
+	public void doGet(Map a, List<NameValuePair> nvps1){
+
+
+		try {
+			HttpClient httpclient = new DefaultHttpClient();
+			/*NameValuePair[] b = a;
+			String string = "";
+			for (NameValuePair nampair:b
+					) {
+				string += nampair.getName() + "=" + nampair.getValue() + "&";
+			}*/
+
+			/*Iterator<Map.Entry<Integer, String>> it = a.entrySet().iterator();
+			 while (it.hasNext()) {
+			 	Map.Entry<Integer, String> entry = it.next();
+			 	url = postUrl+"?"+entry.getKey()+"="+entry.getValue()+"&";
+			 	System.out.println("key= " + entry.getKey() + " and value= " + entry.getValue());
+			 }*/
+			String s= nvps1.toString();
+			String bb = s.substring(1);
+			String aa = bb.substring(0,bb.length()-1);
+			String cc = aa.replace(",","&");
+			String dd = cc.replace(" ","");
+			String url=postUrl+"?"+dd;
+			System.out.println("*********************"+cc);
+			System.out.println(url);
+			HttpGet getmethod = new HttpGet(url);
+			HttpResponse response = httpclient.execute(getmethod);
+			HttpEntity entity = response.getEntity();
+
+			String res = EntityUtils.toString(entity,"UTF-8");
+			String ret = SAXParser.SAXParseNodeValue(res, "v_status");
+			System.out.println(res);
+			System.out.println(ret);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 }
