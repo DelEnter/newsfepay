@@ -546,7 +546,7 @@ public class ListtradeAction extends BaseAction {
 					ts.start();
 				}
 				if("3918".equals((trade.getOrderNo()).substring(0,4))||"4110".equals((trade.getOrderNo()).substring(0,4))){
-					TemporarySynThread ts=new TemporarySynThread("http://www.win4mall.com/OrderAutomatic",trade.getMerchantOrderNo(),"1", trade.getRemark());
+					TemporarySynThread ts=new TemporarySynThread("http://www.win4mall.com/OrderAutomatic",trade.getMerchantOrderNo(),"1", "99BILL*bisunhealth");
 					ts.start();
 				}
 				if("4066".equals((trade.getOrderNo()).substring(0,4))||"4216".equals((trade.getOrderNo()).substring(0,4))){
