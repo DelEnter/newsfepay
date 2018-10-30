@@ -1,5 +1,7 @@
 import com.ecpss.util.MerchantX509Cert;
 import org.apache.commons.codec.binary.Hex;
+import vpn.PayClubMessage;
+import vpn.PayClubUtil;
 import vpn.SYXPayMessage;
 import vpn.SYXPayUtil;
 
