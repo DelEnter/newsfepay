@@ -137,7 +137,7 @@ public class SYXPayUtil{
 		nvps1.add(v_billphone);
 		nvps1.add(v_billemail);
 
-		this.doGet(map2,nvps1);
+		//this.doGet(map2,nvps1);
 
 		List<NameValuePair> nvps2 = new ArrayList<NameValuePair>();
 
@@ -171,33 +171,80 @@ public class SYXPayUtil{
 		nvps2.add(v_billphone);
 		nvps2.add(v_billemail);
 		
-		/*try{
-			PayClubUtil h = new PayClubUtil();
+		try{
+			SYXPayUtil h = new SYXPayUtil();
 			logger.info("提交数据:"+nvps2.toString());
 			String result = h.httpPost(nvps1,postUrl);
 			logger.info("返回数据："+result);
-			JSONObject jasonObject = JSONObject.fromObject(result);
-            Map<String, Object> map= (Map) jasonObject;
-            
-            trade.setV_status(map.get("v_status")+"");
-        	trade.setV_desc(map.get("v_desc")+"");
-        	trade.setV_pstatus(map.get("v_pstatus")+"");
-        	trade.setV_pstring(map.get("v_pstring")+"");
+			/*JSONObject jasonObject = JSONObject.fromObject(result);
+            Map<String, Object> map= (Map) jasonObject;*/
+			String ll = result.replace("\r","");
+			String zz[] = ll.split("\n");
+			for(int i=0;i<zz.length;i++) {
+				String resPram[] = zz[i].split("=");
+				if (resPram.length > 1) {
+					if ("v_status".equals(resPram[0] + "")) {
+						//msg.setResponseCode(Integer.valueOf(resPram[1]));
+						trade.setV_status(resPram[1]);
+						System.out.println(resPram[1]);
+					}
+					if ("v_desc".equals(resPram[0] + "")) {
+						trade.setV_desc(resPram[1]);
+						System.out.println(resPram[1]);
+					}
+					if ("v_pstatus".equals(resPram[0] + "")) {
+						trade.setV_pstatus(resPram[1]);
+						System.out.println(resPram[1]);
+					}
+					if ("v_pstring".equals(resPram[0] + "")) {
+						trade.setV_pstring(resPram[1]);
+						System.out.println(resPram[1]);
+					}
+					if ("v_statusdesc".equals(resPram[0] + "")) {
+						trade.setV_desc(resPram[1]);
+						System.out.println(resPram[1]);
+					}
+				}
+			}
            
 		} catch (Exception e) {
 			logger.info("通道请求超时，3秒钟后重新发送。。。");
 			try{
 				Thread.sleep(3*1000);
-				PayClubUtil h = new PayClubUtil();
+				SYXPayUtil h = new SYXPayUtil();
 				logger.info("提交数据:"+nvps2.toString());
 				String result = h.httpPost(nvps1,postUrl);
 				logger.info("返回数据："+result);
-				JSONObject jasonObject = JSONObject.fromObject(result);
-	            Map<String, Object> map= (Map) jasonObject;
-	            trade.setV_status(map.get("v_status")+"");
-	        	trade.setV_desc(map.get("v_desc")+"");
-	        	trade.setV_pstatus(map.get("v_pstatus")+"");
-	        	trade.setV_pstring(map.get("v_pstring")+"");
+				/*JSONObject jasonObject = JSONObject.fromObject(result);
+	            Map<String, Object> map= (Map) jasonObject;*/
+				String ll = result.replace("\r","");
+				String zz[] = ll.split("\n");
+				for(int i=0;i<zz.length;i++) {
+					String resPram[] = zz[i].split("=");
+					if (resPram.length > 1) {
+						if ("v_status".equals(resPram[0] + "")) {
+							//msg.setResponseCode(Integer.valueOf(resPram[1]));
+							trade.setV_status(resPram[1]);
+							System.out.println(resPram[1]);
+						}
+						if ("v_desc".equals(resPram[0] + "")) {
+							trade.setV_desc(resPram[1]);
+							System.out.println(resPram[1]);
+						}
+						if ("v_pstatus".equals(resPram[0] + "")) {
+							trade.setV_pstatus(resPram[1]);
+							System.out.println(resPram[1]);
+						}
+						if ("v_pstring".equals(resPram[0] + "")) {
+							trade.setV_pstring(resPram[1]);
+							System.out.println(resPram[1]);
+						}
+						if ("v_statusdesc".equals(resPram[0] + "")) {
+							trade.setV_desc(resPram[1]);
+							System.out.println(resPram[1]);
+						}
+					}
+				}
 			} catch (Exception ex) {
 				ex.printStackTrace();
             	trade.setV_status("");
@@ -213,7 +260,7 @@ public class SYXPayUtil{
             	trade.setV_pstring("");
             	trade.setV_pstatus("");
 			}
-		}*/
+		}
 	}
 	public String httpPost(List<NameValuePair> nvps, String url)
 			throws Exception {
@@ -290,19 +337,6 @@ public class SYXPayUtil{
 
 		try {
 			HttpClient httpclient = new DefaultHttpClient();
-			/*NameValuePair[] b = a;
-			String string = "";
-			for (NameValuePair nampair:b
-					) {
-				string += nampair.getName() + "=" + nampair.getValue() + "&";
-			}*/
-
-			/*Iterator<Map.Entry<Integer, String>> it = a.entrySet().iterator();
-			 while (it.hasNext()) {
-			 	Map.Entry<Integer, String> entry = it.next();
-			 	url = postUrl+"?"+entry.getKey()+"="+entry.getValue()+"&";
-			 	System.out.println("key= " + entry.getKey() + " and value= " + entry.getValue());
-			 }*/
 			String s= nvps1.toString();
 			String bb = s.substring(1);
 			String aa = bb.substring(0,bb.length()-1);
@@ -316,9 +350,34 @@ public class SYXPayUtil{
 			HttpEntity entity = response.getEntity();
 
 			String res = EntityUtils.toString(entity,"UTF-8");
-			String ret = SAXParser.SAXParseNodeValue(res, "v_status");
-			System.out.println(res);
-			System.out.println(ret);
+			System.out.println("****************"+res);
+			/*String ll = res.replace("\r","");
+			String zz[] = ll.split("\n");
+			for(int i=0;i<zz.length;i++) {
+				String resPram[] = zz[i].split("=");
+				if (resPram.length > 1) {
+					if ("v_status".equals(resPram[0] + "")) {
+						//msg.setResponseCode(Integer.valueOf(resPram[1]));
+						System.out.println(resPram[1]);
+					}
+					if ("v_desc".equals(resPram[0] + "")) {
+						//msg.setBilladdress(resPram[1]);
+						System.out.println(resPram[1]);
+					}
+					if ("v_pstatus".equals(resPram[0] + "")) {
+						//msg.setRemark(resPram[1]);
+						System.out.println(resPram[1]);
+					}
+					if ("v_pstring".equals(resPram[0] + "")) {
+						//msg.setRemark(resPram[1]);
+						System.out.println(resPram[1]);
+					}
+					if ("v_statusdesc".equals(resPram[0] + "")) {
+						//msg.setRemark(resPram[1]);
+						System.out.println(resPram[1]);
+					}
+				}
+			}*/
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
