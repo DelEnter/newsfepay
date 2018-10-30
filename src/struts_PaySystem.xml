@@ -2344,6 +2344,17 @@
 			</result>
 			<interceptor-ref name="loginByInterceptor" />
 		</action>
+		<!-- 网址审核1 针对全选操作 -->
+		<action name="auditWebSiteManager1"
+			class="com.ecpss.action.websitemanager.MerchantWebSiteManagerAction"
+			method="auditWebSiteManager1">
+			<result name="success" type="dispatcher">
+				<param name="location">
+					/websitemanager/webSiteAudit.jsp
+				</param>
+			</result>
+			<interceptor-ref name="loginByInterceptor" />
+		</action>
 		<!-- 网站分类 -->
 		<action name="toWebSiteType"
 			class="com.ecpss.action.websitemanager.MerchantWebSiteManagerAction"
@@ -2366,6 +2377,17 @@
 			</result>
 			<interceptor-ref name="loginByInterceptor" />
 		</action>
+		<!-- 网址审核拒绝1 针对全选操作-->
+		<action name="notAuditWebSiteManager1"
+			class="com.ecpss.action.websitemanager.MerchantWebSiteManagerAction"
+			method="notAuditWebSiteManager1">
+			<result name="success" type="dispatcher">
+				<param name="location">
+					/websitemanager/webSiteAudit.jsp
+				</param>
+			</result>
+			<interceptor-ref name="loginByInterceptor" />
+		</action>
 		<!-- 网址审核删除 -->
 		<action name="delAuditWebSiteManager"
 			class="com.ecpss.action.websitemanager.MerchantWebSiteManagerAction"
@@ -2377,10 +2399,32 @@
 			</result>
 			<interceptor-ref name="loginByInterceptor" />
 		</action>
+		<!-- 网址审核删除 针对全选-->
+		<action name="delAuditWebSiteManager1"
+			class="com.ecpss.action.websitemanager.MerchantWebSiteManagerAction"
+			method="delAuditWebSiteManager1">
+			<result name="success" type="dispatcher">
+				<param name="location">
+					/websitemanager/webSiteAudit.jsp
+				</param>
+			</result>
+			<interceptor-ref name="loginByInterceptor" />
+		</action>
 		<!-- 重新审核 -->
 		<action name="againAuditWebSiteManager"
 			class="com.ecpss.action.websitemanager.MerchantWebSiteManagerAction"
 			method="againAuditWebSiteManager">
+			<result name="success" type="dispatcher">
+				<param name="location">
+					/websitemanager/webSiteAudit.jsp
+				</param>
+			</result>
+			<interceptor-ref name="loginByInterceptor" />
+		</action>
+		<!-- 重新审核 针对全选-->
+		<action name="againAuditWebSiteManager1"
+			class="com.ecpss.action.websitemanager.MerchantWebSiteManagerAction"
+			method="againAuditWebSiteManager1">
 			<result name="success" type="dispatcher">
 				<param name="location">
 					/websitemanager/webSiteAudit.jsp

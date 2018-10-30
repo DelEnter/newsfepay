@@ -12,98 +12,158 @@
 </head>
 <script language="JavaScript" type="text/JavaScript">
 function audit(){
-	var str=document.getElementsByName("merIdAndStatus");
-	var ids="";
-	for(var i=0;i<str.length;i++){
-		if(str[i].checked==true){
-			var value=str[i].value.split("/");
-			if(value[1]!="0"){
-				alert("选项内有已审核过的项！");
-				return false;
-			}
-				ids+=value[0]+",";
-		}
-	}
-	if(ids==""){
-		alert("请选择要审核的项！");
-		return  false;
-	}
- 	openWindow("../PaySystem/toWebSiteType.action?ids="+ids,"12"); 
-	
-	
-}
-function noAudit(){
-	var str=document.getElementsByName("merIdAndStatus");
-	var ids="";
-	for(var i=0;i<str.length;i++){
-		if(str[i].checked==true){
-			var value=str[i].value.split("/");
-			if(value[1]!="0"){
-				alert("选项内有已审核过的项！");
-				return false;
-			}
-			ids+=value[0]+",";
-		}
-	}
-	if(ids==""){
-		alert("请选择要审核的项！");
-		return  false;
-	}
-	if(confirm("确认审核拒绝？")){
-		var remark=prompt("请输入备注：","");
-		if(remark==""||remark==null){
-			alert("审核原因为必填项！");
-			return false;
+	var bj=document.getElementById("bj").value;
+	var merNo=document.getElementById("merNo").value;
+	var auditStatus=document.getElementById("auditStatus").value;
+	if(bj=="1"){
+		if(merNo!="" && auditStatus!="" && auditStatus=="0"){
+			openWindow("../PaySystem/toWebSiteType.action?merNo="+merNo+"&auditStatus"+auditStatus,"12");
 		}else{
-			window.location="../PaySystem/notAuditWebSiteManager?remark="+remark+"&ids="+ids;
+			alert("商户号、 审核状态不能为空、并且审核状态必须为未审核");
+			return false;
+		}
+	}else{
+		var str=document.getElementsByName("merIdAndStatus");
+		var ids="";
+		for(var i=0;i<str.length;i++){
+			if(str[i].checked==true){
+				var value=str[i].value.split("/");
+				if(value[1]!="0"){
+					alert("选项内有已审核过的项！");
+					return false;
+				}
+					ids+=value[0]+",";
+			}
+		}
+		if(ids==""){
+			alert("请选择要审核的项！");
+			return  false;
+		}
+	 	openWindow("../PaySystem/toWebSiteType.action?ids="+ids,"12"); 
+	}
+}
+
+function noAudit(){//拒绝
+	var bj=document.getElementById("bj").value;
+	var merNo=document.getElementById("merNo").value;
+	var auditStatus=document.getElementById("auditStatus").value;
+	if(bj=="1"){
+		if(merNo!="" && auditStatus!="" && auditStatus=="0"){
+			if(confirm("确认审核拒绝？")){
+				var remark=prompt("请输入备注：","");
+				if(remark==""||remark==null){
+					alert("审核原因为必填项！");
+					return false;
+				}else{
+					window.location="../PaySystem/notAuditWebSiteManager1?merNo="+merNo+"&auditStatus="+auditStatus+"&remark="+remark;
+				}
+			}
+		}else{
+			alert("商户号、 审核状态不能为空、并且审核状态必须为未审核");
+			return false;
+		}
+	}else{
+		var str=document.getElementsByName("merIdAndStatus");
+		var ids="";
+		for(var i=0;i<str.length;i++){
+			if(str[i].checked==true){
+				var value=str[i].value.split("/");
+				if(value[1]!="0"){
+					alert("选项内有已审核过的项！");
+					return false;
+				}
+				ids+=value[0]+",";
+			}
+		}
+		if(ids==""){
+			alert("请选择要审核的项！");
+			return  false;
+		}
+		if(confirm("确认审核拒绝？")){
+			var remark=prompt("请输入备注：","");
+			if(remark==""||remark==null){
+				alert("审核原因为必填项！");
+				return false;
+			}else{
+				window.location="../PaySystem/notAuditWebSiteManager?remark="+remark+"&ids="+ids;
+			}
 		}
 	}
 }
-function delWebSite(){
-	var str=document.getElementsByName("merIdAndStatus");
-	var ids="";
-	for(var i=0;i<str.length;i++){
-		if(str[i].checked==true){
-			var value=str[i].value.split("/");
-			if(value[1]=="0"){
-				alert("未审核的项不能删除！");
-				return false;
-			}
-			ids+=value[0]+",";
+function delWebSite(){//删除
+	var bj=document.getElementById("bj").value;
+	var merNo=document.getElementById("merNo").value;
+	var auditStatus=document.getElementById("auditStatus").value;
+	if(bj=="1"){
+		if(merNo!="" && auditStatus!="" && auditStatus!="0"){
+			if(confirm("确认删除所有按照条件查询的网址吗？(请谨慎操作！！！)")){
+				window.location="../PaySystem/delAuditWebSiteManager1?merNo="+merNo+"&auditStatus="+auditStatus;
+				}
+		}else{
+			alert("商户号、 审核状态不能为空、并且审核状态必须为已审核、已拒绝状态");
+			return false;
 		}
-	}
-	if(ids==""){
-		alert("请选择要审核的项！");
-		return  false;
-	}
-	if(confirm("确认删除吗？")){
-	window.location="../PaySystem/delAuditWebSiteManager?ids="+ids;
+	}else{
+		var str=document.getElementsByName("merIdAndStatus");
+		var ids="";
+		for(var i=0;i<str.length;i++){
+			if(str[i].checked==true){
+				var value=str[i].value.split("/");
+				if(value[1]=="0"){
+					alert("未审核的项不能删除！");
+					return false;
+				}
+				ids+=value[0]+",";
+			}
+		}
+		if(ids==""){
+			alert("请选择要审核的项！");
+			return  false;
+		}
+		if(confirm("确认删除吗？")){
+		window.location="../PaySystem/delAuditWebSiteManager?ids="+ids;
+		}
 	}
 }
-function againAudit(){
-	var str=document.getElementsByName("merIdAndStatus");
-	var ids="";
-	for(var i=0;i<str.length;i++){
-		if(str[i].checked==true){
-			var value=str[i].value.split("/");
-			if(value[1]=="0"){
-				alert("未审核的项不需要重审！");
-				return false;
-			}
-			ids+=value[0]+",";
+function againAudit(){//重审
+	var bj=document.getElementById("bj").value;
+	var merNo=document.getElementById("merNo").value;
+	var auditStatus=document.getElementById("auditStatus").value;
+	if(bj=="1"){
+		if(merNo!="" && auditStatus!="" && auditStatus!="0"){
+			if(confirm("确定选中的项重新审核吗？")){
+				window.location="../PaySystem/againAuditWebSiteManager1?merNo="+merNo+"&auditStatus="+auditStatus;
+				}
+		}else{
+			alert("商户号、 审核状态不能为空、并且审核状态必须为已审核、已拒绝状态");
+			return false;
 		}
-	}
-	if(ids==""){
-		alert("请选择重新审核的项！");
-		return  false;
-	}
-	if(confirm("确定选中的项重新审核吗？")){
-	window.location="../PaySystem/againAuditWebSiteManager?ids="+ids;
+	}else{
+		var str=document.getElementsByName("merIdAndStatus");
+		var ids="";
+		for(var i=0;i<str.length;i++){
+			if(str[i].checked==true){
+				var value=str[i].value.split("/");
+				if(value[1]=="0"){
+					alert("未审核的项不需要重审！");
+					return false;
+				}
+				ids+=value[0]+",";
+			}
+		}
+		if(ids==""){
+			alert("请选择重新审核的项！");
+			return  false;
+		}
+		if(confirm("确定选中的项重新审核吗？")){
+		window.location="../PaySystem/againAuditWebSiteManager?ids="+ids;
+		}
 	}
 }
 function modify(id){
 	openWindow('../PaySystem/toModifyWebSite.action?webId='+id,'12');
 	}
+
 </script>
 <body>
 <h3 align="center"> 商户管理</h3>
@@ -112,10 +172,10 @@ function modify(id){
                   <table width="80%" border="0" cellspacing="0" cellpadding="0" style="margin-top: 20px">
                     <tr>
                      <td align="left">&nbsp;商户号： 
-                     
-                     <s:textfield theme="simple"  name="merNo" type="text"/>
-                     <%-- <input type="text" name="merNo" value="${merNo}"/>  --%>                     &nbsp;审核状态：
-					 <s:select theme="simple" name='auditStatus' list="#{'':'---请选择---','0':'未审核','1':'审核通过','2':'拒绝'}"></s:select>
+                 	
+                     <s:textfield theme="simple"  name="merNo" id="merNo" type="merNo"/>
+                     <%-- <input type="text" name="merNo"  value="${merNo}"/>  --%>                     &nbsp;审核状态：
+					 <s:select theme="simple" name='auditStatus'  id="auditStatus"  type="auditStatus" list="#{'':'---请选择---','0':'未审核','1':'审核通过','2':'拒绝'}"></s:select>
                      <%-- <select name="auditStatus">
                      <option value="">---请选择---</option>
                      <option value="0">未审核</option>
@@ -132,6 +192,7 @@ function modify(id){
                   <table width="100%" border="0" cellpadding="0" cellspacing="1" bgcolor="#333333" style="margin-top: 20px">
                     <tr>
                       <td width="4%" bgcolor="#FFFFFF" align="center">
+                      <input type="hidden" onclick='chkall("form1",this)' id="bj" value="0">
   					  <input type="checkbox" onclick='chkall("form1",this)' name=chk>
   					  </td>
                       <td height="30" width="5%" align="center" bgcolor="#cccccc" class="font14px">商户号 </td>

@@ -14,6 +14,8 @@ import com.ecpss.model.shop.InternationalWebchannels;
 import com.ecpss.service.common.CommonService;
 import com.ecpss.web.PageInfo;
 
+import oracle.net.aso.l;
+
 /**
  * 商户网址管理
  * 
@@ -214,22 +216,22 @@ public class MerchantWebSiteManagerAction extends BaseAction {
 		if(StringUtils.isNotBlank(ids)){
 			try {
 			String[] id=ids.split(",");
-			for(int i=0;i<id.length;i++){
+			for(int i=0;i<id.length;i++){//根据ID从这个表1中查出这条记录
 				InternationalIsAuditWeb isAudit=(InternationalIsAuditWeb)commonService.uniqueResult("from InternationalIsAuditWeb where id='"+id[i]+"'");
-				InternationalWebchannels webChannels=new InternationalWebchannels();
-				webChannels.setExecutetime(new Date());
-				webChannels.setMerchanid(isAudit.getMerchanid());
-				webChannels.setOperator(this.getUserBean().getUserName());
-				webChannels.setTradeWebsite(isAudit.getTradeWebsite());
-				webChannels.setWebsite(isAudit.getWebsite());
-				webChannels.setIsblack("0");
-				webChannels.setWebSiteType(new String(webSiteType.trim().getBytes("iso-8859-1"),"utf-8"));
-				this.commonService.save(webChannels);
-				isAudit.setIsAudit("1");
-				isAudit.setOperator(this.getUserBean().getUserName());
-				isAudit.setWebcannelId(webChannels.getId());
-				isAudit.setRemark(new String(webSiteType.trim().getBytes("iso-8859-1"),"utf-8"));
-				this.commonService.update(isAudit);
+				InternationalWebchannels webChannels=new InternationalWebchannels();//创建表2对象 给表2 对象赋值
+				webChannels.setExecutetime(new Date());// ：执行时间
+				webChannels.setMerchanid(isAudit.getMerchanid());//：商户ID
+				webChannels.setOperator(this.getUserBean().getUserName());//
+				webChannels.setTradeWebsite(isAudit.getTradeWebsite());//：交易网址
+				webChannels.setWebsite(isAudit.getWebsite());//：返回网址
+				webChannels.setIsblack("0");//isblack为：0
+				webChannels.setWebSiteType(new String(webSiteType.trim().getBytes("iso-8859-1"),"utf-8"));//：返回网址类型
+				this.commonService.save(webChannels);//调用save方法（针对表二）
+				isAudit.setIsAudit("1");//给表1 对象赋值
+				isAudit.setOperator(this.getUserBean().getUserName());//操作员
+				isAudit.setWebcannelId(webChannels.getId());//webcannelId赋值
+				isAudit.setRemark(new String(webSiteType.trim().getBytes("iso-8859-1"),"utf-8"));//网址类别
+				this.commonService.update(isAudit);//调用update方法（针对表二）
 			}
 			}catch(Exception e){
 				e.printStackTrace();
@@ -239,17 +241,78 @@ public class MerchantWebSiteManagerAction extends BaseAction {
 		this.messageAction = "添加网址分类成功";
 		return OPERATE_SUCCESS;
 	}
+	/*
+	 * 商户网址审核(jiahui)针对全选(商户号、网址类型、审核状态 )
+	 */
+	public String auditWebSiteManager1(){
+		//查询出商户号所对应的ID号；
+		if(merNo!=null){
+			try{
+				InternationalMerchant mer=(InternationalMerchant) commonService.uniqueResult("from InternationalMerchant where merno='"+merNo+"'");
+				if(mer!=null){
+					String hql="from InternationalIsAuditWeb where merchanid='"+mer.getId()+"'"+" and isaudit='"+auditStatus+"'";
+					List<InternationalIsAuditWeb> list=commonService.list(hql);//根据商户的ID查询出所有的信息记录
+					for(int i=0;i<list.size();i++){
+						InternationalIsAuditWeb isAudit = list.get(i);
+						InternationalWebchannels webChannels=new InternationalWebchannels();//创建表2对象 给表2 对象赋值
+						webChannels.setExecutetime(new Date());// ：执行时间
+						webChannels.setMerchanid(isAudit.getMerchanid());//：商户ID
+						webChannels.setOperator(this.getUserBean().getUserName());//
+						webChannels.setTradeWebsite(isAudit.getTradeWebsite());//：交易网址
+						webChannels.setWebsite(isAudit.getWebsite());//：返回网址
+						webChannels.setIsblack("0");//isblack为：0
+						webChannels.setWebSiteType(new String(webSiteType.trim().getBytes("iso-8859-1"),"utf-8"));//：返回网址类型
+						this.commonService.save(webChannels);//调用save方法（针对表二）
+						isAudit.setIsAudit("1");//给表1 对象赋值
+						isAudit.setOperator(this.getUserBean().getUserName());//操作员
+						isAudit.setWebcannelId(webChannels.getId());//webcannelId赋值
+						isAudit.setRemark(new String(webSiteType.trim().getBytes("iso-8859-1"),"utf-8"));//网址类别
+						this.commonService.update(isAudit);//调用update方法（针对表二）
+					}
+				}
+			}catch(Exception e){
+				e.printStackTrace();
+			}	
+		}
+		this.messageAction = "添加网址分类成功";
+		return OPERATE_SUCCESS;
+	}
 	//拒绝
 	public String notAuditWebSiteManager(){
 		try {
-		if(StringUtils.isNotBlank(ids)){
+		if(StringUtils.isNotBlank(ids)){//判断ids是不是null
 			String[] id=ids.split(",");
-			for(int i=0;i<id.length;i++){
+			for(int i=0;i<id.length;i++){//循环ids
 				InternationalIsAuditWeb isAudit=(InternationalIsAuditWeb)commonService.uniqueResult("from InternationalIsAuditWeb where id='"+id[i]+"'");
 				isAudit.setIsAudit("2");
 				isAudit.setOperator(this.getUserBean().getUserName());
 				isAudit.setRemark(new String(remark.getBytes("iso-8859-1"),"utf-8").trim());
 				this.commonService.update(isAudit);
+			}
+		}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		toAuditWebSiteManager();
+		return SUCCESS;
+	}
+	//拒绝针对全选
+	public String notAuditWebSiteManager1(){
+		
+		try {
+		if(merNo!=null){
+			InternationalMerchant mer=(InternationalMerchant) commonService.uniqueResult("from InternationalMerchant where merno='"+merNo+"'");
+			if(mer!=null){
+				String hql="from InternationalIsAuditWeb where merchanid='"+mer.getId()+"'"+" and isaudit='"+auditStatus+"'";
+				List<InternationalIsAuditWeb> list=commonService.list(hql);//根据商户的ID查询出所有的信息记录
+				for(int i=0;i<list.size();i++){
+					InternationalIsAuditWeb isAudit=list.get(i);
+					isAudit.setIsAudit("2");
+					isAudit.setOperator(this.getUserBean().getUserName());
+					isAudit.setRemark(new String(remark.getBytes("iso-8859-1"),"utf-8").trim());
+					this.commonService.update(isAudit);
+				}
 			}
 		}
 		} catch (Exception e) {
@@ -271,6 +334,22 @@ public class MerchantWebSiteManagerAction extends BaseAction {
 		toAuditWebSiteManager();
 		return SUCCESS;
 	}
+	//删除   针对全选
+	public String delAuditWebSiteManager1(){
+		if(merNo!=null){
+			InternationalMerchant mer=(InternationalMerchant) commonService.uniqueResult("from InternationalMerchant where merno='"+merNo+"'");
+			if(mer!=null){
+				String hql="from InternationalIsAuditWeb where merchanid='"+mer.getId()+"'"+" and isaudit='"+auditStatus+"'";
+				List<InternationalIsAuditWeb> list=commonService.list(hql);//根据商户的ID查询出所有的信息记录
+				for(int i=0;i<list.size();i++){
+					InternationalIsAuditWeb isAudit=list.get(i);
+					this.commonService.delete(isAudit);
+				}
+			}
+		}
+		toAuditWebSiteManager();
+		return SUCCESS;
+	}
 	//修改已审核的状态为重新审核
 	public String againAuditWebSiteManager(){
 		if(StringUtils.isNotBlank(ids)){
@@ -287,6 +366,31 @@ public class MerchantWebSiteManagerAction extends BaseAction {
 				isAudit.setWebcannelId(null);
 				isAudit.setIsAudit("0");
 				this.commonService.update(isAudit);
+			}
+		}
+		toAuditWebSiteManager();
+		return SUCCESS;
+	}
+	//修改已审核的状态为重新审核针对全选
+	public String againAuditWebSiteManager1(){
+		if(merNo!=null){
+			InternationalMerchant mer=(InternationalMerchant) commonService.uniqueResult("from InternationalMerchant where merno='"+merNo+"'");
+			if(mer!=null){
+				String hql="from InternationalIsAuditWeb where merchanid='"+mer.getId()+"'"+" and isaudit='"+auditStatus+"'";
+				List<InternationalIsAuditWeb> list=commonService.list(hql);//根据商户的ID查询出所有的信息记录
+				for(int i=0;i<list.size();i++){
+					InternationalIsAuditWeb isAudit=list.get(i);
+					if("1".equals(isAudit.getIsAudit())&&isAudit.getWebcannelId()!=null){
+						InternationalWebchannels web=(InternationalWebchannels) commonService.uniqueResult("from InternationalWebchannels where id='"+isAudit.getWebcannelId()+"'");
+						if(web!=null){
+							commonService.delete(web);
+						}
+					}
+					isAudit.setOperator("");
+					isAudit.setWebcannelId(null);
+					isAudit.setIsAudit("0");
+					this.commonService.update(isAudit);
+				}	
 			}
 		}
 		toAuditWebSiteManager();
