@@ -59,7 +59,7 @@ public class MerUploadAction extends BaseAction {
 	private File trackingName;
 
 	/**
-	 * ��ѯ�ϴ�ͼƬ
+	 * 查询上传图片
 	 */
 	public String findUploadPicture() {
 		try {
@@ -73,26 +73,26 @@ public class MerUploadAction extends BaseAction {
 			return SUCCESS;
 		} catch (Exception e) {
 			e.printStackTrace();
-			this.messageAction = "�ϴ�ͼƬ��ѯʧ��";
+			this.messageAction = "上传图片查询失败";
 			return this.OPERATE_SUCCESS;
 		}
 	}
 
 	/**
-	 * ��ת���ϴ�ͼƬҳ��
+	 * 跳转到上传图片页面
 	 */
 	public String toUploadPicture() {
 		try {
 			return SUCCESS;
 		} catch (Exception e) {
 			e.printStackTrace();
-			this.messageAction = "��ת���ϴ�ͼƬҳ��ʧ��";
+			this.messageAction = "跳转到上传图片页面失败";
 			return this.OPERATE_SUCCESS;
 		}
 	}
 
 	/**
-	 * �ϴ�
+	 * 上传
 	 */
 	public String uploadPicture() {
 		try {
@@ -106,11 +106,11 @@ public class MerUploadAction extends BaseAction {
 			} else {
 				targetDirectory = "D:\\\\upload\\\\";// this.getSavePath();
 				// targetFileName = uploadFileName;
-				// this.setDir(targetDirectory + uploadFileName);//�Ѵ�˫б�ܵ�·��д��������
+				// this.setDir(targetDirectory + uploadFileName);//把带双斜杠的路径写到服务器
 				target = new File(targetDirectory, uploadFileName);
-				FileUtils.copyFile(upload, target);// ��tomcat ��ʱ��upload·��,copy
-				// ��Ŀ��target·��
-				fos = new FileOutputStream(target);// ���ļ�д��Ŀ��·��
+				FileUtils.copyFile(upload, target);// 把tomcat 临时的upload路径,copy
+				// 到目标target路径
+				fos = new FileOutputStream(target);// 把文件写到目标路径
 				fis = new FileInputStream(getUpload());
 			}
 
@@ -125,17 +125,17 @@ public class MerUploadAction extends BaseAction {
 					.load(InternationalTradeinfo.class, trade.getId());
 			tradeinfo.setIsPicture(targetDirectory + "" + uploadFileName);
 			commonService.update(tradeinfo);
-			this.messageAction = "�ϴ�ͼƬ�ɹ�";
+			this.messageAction = "上传图片成功";
 			return SUCCESS;
 		} catch (Exception e) {
 			e.printStackTrace();
-			this.messageAction = "�ϴ�ͼƬʧ��";
+			this.messageAction = "上传图片失败";
 			return this.OPERATE_SUCCESS;
 		}
 	}
 
 	/**
-	 * �鿴�ϴ����ٵ���
+	 * 查看上传跟踪单号
 	 */
 	public String findUploadNumber() throws Exception {
 		try {
@@ -177,21 +177,21 @@ public class MerUploadAction extends BaseAction {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			this.messageAction = "�鿴�ϴ����ٵ���ʧ��";
+			this.messageAction = "查看上传跟踪单号失败";
 			return this.OPERATE_SUCCESS;
 		}
 	}
 
 	/**
-	 * ������Ҫ�ϴ��������ŵĽ���
-	 * 
+	 * 下载需要上传发货单号的交易
+	 *
 	 * @param oArray
 	 * @return
 	 */
 	public void downloadTradeQuery(List<Object> oArray) throws IOException {
 		TableExport export = TableExportFactory.createExcelTableExport();
-		export.addTitle(new String[] { "���", "������ˮ��", "�̻�������", "��������", "�������",
-				"��ݹ�˾", "���ٵ���", "��ַ" });
+		export.addTitle(new String[] { "序号", "交易流水号", "商户订单号", "交易日期", "订单金额",
+				"快递公司", "跟踪单号", "网址" });
 		export.setTableName("tracking");
 		InternationalTradeinfo t = new InternationalTradeinfo();
 		int i = 1;
@@ -207,7 +207,7 @@ public class MerUploadAction extends BaseAction {
 		DownloadUtils.closeResponseOutput();
 	}
 
-	// ȷ�������ϴ�
+	// 确认批量上传
 	public String confirmImport() throws Exception {
 		try {
 			if (trackingName != null) {
@@ -231,16 +231,16 @@ public class MerUploadAction extends BaseAction {
 						.load(InternationalMerchant.class, getMerchantBean()
 								.getMerchantId());
 				for (RowResult<ImportTrackingOrder> rowResult : cons) {
-					// ��ȡexcel���ݵ��뵽bean ImportTrackingOrder
+					// 获取excel数据导入到bean ImportTrackingOrder
 					track = rowResult.getRowObject();
-					
+
 					String oql1 = "select ti from InternationalTradeinfo ti where ti.isTrackNo='"+track.getTrackingType()
-					+ track.getTrackingNo()+"' and ti.merchantId = "
-						+ getMerchantBean().getMerchantId()
-						+ " ";
+							+ track.getTrackingNo()+"' and ti.merchantId = "
+							+ getMerchantBean().getMerchantId()
+							+ " ";
 					List<InternationalTradeinfo> list1 = commonService.list(oql1);
 					if(list1.size()==0){
-						// �жϸ��ٵ����ͺ͸��ٺ��Ƿ�Ϊ��,�յĻ������ϴ�
+						// 判断跟踪单类型和跟踪号是否为空,空的话不给上传
 						String oql = "select ti from InternationalTradeinfo ti where ti.isTrackNo is null and ti.merchantId = "
 								+ getMerchantBean().getMerchantId()
 								+ " and ti.orderNo = '"
@@ -252,7 +252,7 @@ public class MerUploadAction extends BaseAction {
 									.get(0);
 							if (StringUtils.isNotBlank(track.getTrackingType())
 									&& StringUtils
-											.isNotBlank(track.getTrackingNo())) {
+									.isNotBlank(track.getTrackingNo())) {
 								if (track.getTrackingType().equals("EMS")
 										|| track.getTrackingType().equals("DHL")
 										|| track.getTrackingType().equals("UPS")
@@ -261,12 +261,12 @@ public class MerUploadAction extends BaseAction {
 										|| track.getTrackingType().equals("DMS")
 										|| track.getTrackingType().equals("USPS")
 										|| track.getTrackingType().equals(
-												"ChinaPost")
+										"ChinaPost")
 										|| track.getTrackingType().equals("HkPost")) {
 									ti.setIsTrackNo(track.getTrackingType()
 											+ track.getTrackingNo());
 									commonService.update(ti);
-									
+
 									succCount++;
 								}
 							} else {
@@ -279,11 +279,11 @@ public class MerUploadAction extends BaseAction {
 						sameCount++;
 					}
 				}
-				messageAction = "�ɹ����" + succCount + "��,ʧ��" + failedCount
-						+ "��,��"+sameCount+"�����ٵ����Ѿ�����.������������Ϣ��д���ϴ������ֶ���ӵ���";
+				messageAction = "成功添加" + succCount + "条,失败" + failedCount
+						+ "条,有"+sameCount+"个跟踪单号已经存在.请重新下载信息填写后上传或者手动添加单号";
 				return SUCCESS;
 			} else {
-				messageAction = "��ѡ��һ����Ҫ�ϴ����ļ�";
+				messageAction = "请选择一个需要上传的文件";
 				return SUCCESS;
 			}
 		} catch (Exception e) {
@@ -293,8 +293,8 @@ public class MerUploadAction extends BaseAction {
 	}
 
 	/**
-	 * �����ϴ�����
-	 * 
+	 * 跳入上传批量
+	 *
 	 * @return
 	 */
 	public String toImportTracking() {
@@ -302,20 +302,20 @@ public class MerUploadAction extends BaseAction {
 	}
 
 	/**
-	 * �鿴���ظ��ٵ���
+	 * 查看下载跟踪单号
 	 */
 	public String download() {
 		try {
 			return SUCCESS;
 		} catch (Exception e) {
 			e.printStackTrace();
-			this.messageAction = "���ظ��ٵ���ʧ��";
+			this.messageAction = "下载跟踪单号失败";
 			return this.OPERATE_SUCCESS;
 		}
 	}
 
 	/**
-	 * �ϴ����ٵ���
+	 * 上传跟踪单号
 	 */
 	public String uploadNumber() {
 		try {
@@ -323,17 +323,17 @@ public class MerUploadAction extends BaseAction {
 					.load(InternationalTradeinfo.class, trade.getId());
 			tradeInfo.setIsTrackNo(mail + trade.getIsTrackNo());
 			commonService.update(tradeInfo);
-			this.messageAction = "�ϴ����ٵ��ųɹ�!";
+			this.messageAction = "上传跟踪单号成功!";
 			return SUCCESS;
 		} catch (Exception e) {
 			e.printStackTrace();
-			this.messageAction = "�ϴ����ٵ���ʧ��";
+			this.messageAction = "上传跟踪单号失败";
 			return this.OPERATE_SUCCESS;
 		}
 	}
 
 	/**
-	 * ��ת���ϴ����ٵ���ҳ��
+	 * 跳转到上传跟踪单号页面
 	 */
 	public String toUploadNumber() {
 		try {
@@ -343,7 +343,7 @@ public class MerUploadAction extends BaseAction {
 			return SUCCESS;
 		} catch (Exception e) {
 			e.printStackTrace();
-			this.messageAction = "�ϴ����ٵ���ʧ��";
+			this.messageAction = "上传跟踪单号失败";
 			return this.OPERATE_SUCCESS;
 		}
 	}
