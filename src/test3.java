@@ -1,13 +1,19 @@
+import com.ecpss.model.refund.InternationalRefundManager;
+import com.ecpss.util.MD5;
 import com.ecpss.util.MerchantX509Cert;
+
+import net.sf.json.JSONObject;
+
 import org.apache.commons.codec.binary.Hex;
-import vpn.PayClubMessage;
-import vpn.PayClubUtil;
-import vpn.SYXPayMessage;
-import vpn.SYXPayUtil;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
+
+import vpn.*;
 
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.UUID;
 
 
 /**
@@ -26,13 +32,117 @@ public class test3
 						+ AES.setCarNo(cardNo)+"') and substr(t.tradestate,1,1)='0' and t.tradeTime>to_date('"
 			+ onedate + "','yyyy-MM-dd hh24:mi:ss')";
 		System.out.println(sql);*/
-	 	/*IPassPayTemporMessage trade = new IPassPayTemporMessage();
-	 	IpassPayTemporary tt = new IpassPayTemporary();
-	 	trade.setOrderNo("00000");
-	 	trade.setRes_orderStatus("4");
-	 	trade.setRemark("Payment Success!");
-	 	tt.get(trade);*/
-		SYXPayMessage syx=new SYXPayMessage();
+		/*MSqueryorder trade = new MSqueryorder();
+		Msqueryorderutil tt = new Msqueryorderutil();
+
+	 	trade.setVersion("1.0");
+	 	trade.setMerchantId("801128553113051");
+	 	trade.setCharset("utf-8");
+	 	trade.setLanguage("en");
+	 	trade.setSignType("SHA256");
+	 	trade.setQueryType("1");
+	 	trade.setMerchantOrderNo("41611810291413022656");
+	 	String sign ="version=1.0&merchantId=801128553113051&charset=utf-8&language=en&signType=SHA256&queryType=1&merchantOrderNo="+trade.getMerchantOrderNo()+"&key=K_iTBOu~";
+	 	
+	 	trade.setSignMsg(getSha256(sign));
+	 	String result = tt.get(trade);
+	 	System.out.println("result:"+result);
+	 	JSONObject json = JSONObject.fromObject(result);
+	 	String a = json.getJSONArray("list").getString(0);
+	 	JSONObject json2 = JSONObject.fromObject(a);
+	 	String b = json2.getString("masapayOrderNo");
+	 	System.out.println(b);*/
+
+		QuanQiuPayMessage msg=new QuanQiuPayMessage();
+		QuanQiuPayUtil yu=new QuanQiuPayUtil();
+		msg.setMode("Api");
+		//msg.setVersion("20180208");
+		msg.setApplicationId("40615186");
+		msg.setOrderId("123456789");
+		//msg.setSource("https://www.sfepay.com");
+		msg.setEmail("index@gmail.com");
+		msg.setIPAddress("73.235.128.136");
+		msg.setCurrency("CNY");
+		// "70227403" + "123456" + "index@gmail.com" + "CNY" + "80.46" + "0.00" + "0.00" + "0.00" + "VKf0MK02O8iYewkb";
+
+		msg.setAmount("80.66");
+		MD5 md5=new MD5();
+		String md5Hash = msg.getApplicationId() + msg.getOrderId() + msg.getEmail() + msg.getCurrency() + msg.getAmount() + "KZfpGG6hRJnzFJwX";
+		msg.setSignature(md5.getMD5ofStr(md5Hash));
+		//msg.setSignature("33C650F472B259FB658EDAD495896A49");
+		msg.setProductSku1("ProductSku1");
+		msg.setProductName1("nike max 7");
+		msg.setProductPrice1("80.66");
+		msg.setProductQuantity1("1");
+
+		msg.setShippingFirstName("ccc");
+		msg.setShippingLastName("zzz");
+		msg.setShippingCountry("US");
+		msg.setShippingState("American Samoa");//要改
+		msg.setShippingCity("newyork");
+		msg.setShippingAddress1("nn456");
+		msg.setShippingZipcode("84000");
+		msg.setShippingTelephone("15574873272");
+
+		msg.setBillingFirstName("ccc");
+		msg.setBillingLastName("zzz");
+		msg.setBillingCountry("USAUS");
+		if(msg.getBillingCountry().length()>=3){
+			msg.setBillingCountry(msg.getBillingCountry().substring(3, 5));
+		}else{
+			msg.setBillingCountry(msg.getBillingCountry());
+		}
+		msg.setBillingState("American Samoa");//要改
+		msg.setBillingCity("newyork");
+		msg.setBillingAddress1("nn456");
+		msg.setBillingZipcode("84000");
+		msg.setBillingTelephone("15574873272");
+
+		msg.setCreditCardName("ccczzz");
+		msg.setCreditCardNumber("4111111111111111");
+		msg.setCreditCardExpire("202106");
+		msg.setCreditCardCsc2("035");
+
+		yu.get(msg);
+		
+		
+		
+		/*Msrefundorderutil tt = new Msrefundorderutil();
+		MSrefundorder trade = new MSrefundorder();
+		trade.setVersion("1.0");
+	 	trade.setMerchantId("801128553113051");
+	 	trade.setCharset("utf-8");
+	 	trade.setLanguage("en");
+	 	trade.setSignType("SHA256");
+	 	
+		trade.setRefundOrderNo("test1");
+		trade.setMasapayOrderNo("123465");
+		trade.setRefundAmount("0.00");
+		trade.setCurrencyCode("CNY");
+		Date currentTime = new Date();
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddhhmmss");
+		String dateString = formatter.format(currentTime);
+		trade.setRefundSubmitTime(dateString);
+		trade.setCallbackUrl("https://www.sfepay.com");
+		trade.setMerchantOrderNo("12456789");
+		
+		//String sign = "version=1.9&merchantId=801128553113051&charset=utf-8&language=en&signType=SHA256&refundOrderNo="+trade.getRefundOrderNo()+"&merchantOrderNo="+trade.getMerchantOrderNo()+"&masapayOrderNo="+trade.getMasapayOrderNo()+"&refundAmount="+trade.getRefundAmount()+"&currencyCode=CNY&refundSubmitTime="+dateString+"&callbackUrl=www.sfepay.com&key=K_iTBOu~";
+		String sign = "version=1.9&merchantId=801128553113051&charset=utf-8&language=en&signType=SHA256&refundOrderNo="+trade.getRefundOrderNo()+"&merchantOrderNo="+trade.getMerchantOrderNo()+"&masapayOrderNo="+trade.getMasapayOrderNo()+"&refundAmount="+trade.getRefundAmount()+"&currencyCode=CNY&refundSubmitTime="+dateString+"&callbackUrl=http://www.sfepay.com/masapayrefund&key=K_iTBOu~";
+
+		
+	 	trade.setSignMsg(getSha256(sign)); 
+	 	String result = tt.get(trade);
+	 	System.out.println("result:"+result);
+	 	JSONObject json = JSONObject.fromObject(result);
+	 	String b = json.get("resultCode").toString();
+	 	System.out.println(b);
+	 	
+	 	StringBuffer buffer = new StringBuffer("123456789");
+	 	buffer.replace(1, 2, "0");
+	 	System.out.println(buffer.toString());*/
+	 	
+	 	
+	 	/*SYXPayMessage syx=new SYXPayMessage();
 		SYXPayUtil syxp=new SYXPayUtil();
 		syx.setV_mid("20051");
 
@@ -74,7 +184,9 @@ public class test3
 		syx.setV_billphone("704-429-6436");
 		syx.setV_billemail("index@gmail.com");
 
-		syxp.get(syx);
+		syxp.get(syx);*/
+		
+		
 	 /*TemporarySynThread ts=new TemporarySynThread("https://api.mch.weixin.qq.com/pay/queryexchagerate","320986", "1","Payment Success!");
 	 ts.start();*/
 	 	/*PayClubMessage msg=new PayClubMessage();
@@ -133,10 +245,12 @@ public class test3
 		httpsPost.http_Post(map, url,getData);*/
 /*	 TemporarySynThread ts=new TemporarySynThread("http://www.jjqsc.com/PayResult.php","320981", "1","Payment Success!");
 	 ts.start();*/
-/*	 testPayUtil tt = new testPayUtil();
+	 /*testPayUtil tt = new testPayUtil();
 	 WRPayMessage trade = new WRPayMessage();
 	 tt.get(trade);*/
-/*	 	IPassPayMessage msg=new IPassPayMessage();
+		
+		
+	 	/*IPassPayMessage msg=new IPassPayMessage();
 		IPassPayUtil yu=new IPassPayUtil();
 		msg.setMid("20331");
 		msg.setOid("1234567891011");
@@ -178,6 +292,8 @@ public class test3
 		//msg.setBillingstate("Alabama");
 
 		yu.get(msg);*/
+		
+		
 	 	/*ZMTPayMessage msg=new ZMTPayMessage();
 		ZMTPayUtil yu=new ZMTPayUtil();
 		msg.setMerNo("1002");

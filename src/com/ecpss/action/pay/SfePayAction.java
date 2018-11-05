@@ -45,6 +45,8 @@ import vpn.HJWPayMessage;
 import vpn.HJWPayUtil;
 import vpn.HRPayMessage;
 import vpn.HRPayUtil;
+import vpn.IPassPayMessage;
+import vpn.IPassPayUtil;
 import vpn.MasaPayMessage;
 import vpn.MasaPayUtil;
 import vpn.VpnUtil;
@@ -621,6 +623,9 @@ public class SfePayAction extends BaseAction {
 		card.setProductInfo(products);
 		this.commonService.save(card);
 		 tradeInfo.setTradeChannel(Long.valueOf(merchanID));
+		 if(im.getChannelFee()!=null){
+			 tradeInfo.setChannelFee(im.getChannelFee());
+	     }
 		 this.commonService.update(tradeInfo);
 //		 List<Long> backCardValue=this.commonService.list("select t.merId from InternationalBacklist t where substr(t.cardno,1,6)='"
 //					+ cardNo.substring(0,6) + "' and substr(t.cardno,13,4)='"+cardNo.substring(12,cardNo.length())+"' ");
@@ -1123,6 +1128,34 @@ public class SfePayAction extends BaseAction {
 					return SUCCESS;
 				}
 			}
+			
+			
+			/*//08做的是一个月内只要卡号、邮箱、IP有做过交易的全部进待处理(单独拿到风控等级之外)
+			Calendar calendarUrl6 = Calendar.getInstance();// 此时打印它获取的是系统当前时间
+			calendarUrl6.add(Calendar.MONTH,-1); // 得到一月前
+			String oneMouth6 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+						.format(calendarUrl6.getTime());
+			List repUrllist6 = commonService.getByList
+					("select t.orderNo from international_cardholdersinfo f, international_tradeinfo t where f.tradeid=t.id and (f.cardNo='"
+							+ AES.setCarNo(cardNo)
+							+ "' or f.ip='"+ip.trim()+"' or f.email='"+email.trim()+"') and t.tradeTime>to_date('"
+				+ oneMouth6 + "','yyyy-MM-dd hh24:mi:ss')");
+			if(repUrllist6!=null&&repUrllist6.size()>1){
+				message = "Payment Declined！";
+				remark = "Payment Declined！08";
+				responseCode = 19;
+				logger.info("返回状态码+++++++++" + responseCode);
+				MD5info = tradeInfo.getMerchantOrderNo() + tradeInfo.getMoneyType()
+						+ ordercountValue + responseCode + MD5key;
+				md5Value = md5.getMD5ofStr(MD5info);
+				tradeInfo.setTradeState("2"
+						+ tradeInfo.getTradeState().substring(1,
+								tradeInfo.getTradeState().length()));
+				tradeInfo.setRemark(remark);
+				this.commonService.update(tradeInfo);
+				shopManagerService.addTemporaryTradInfo(orderno, year, month,cvv2,country,MD5key, ip,"MSIE 10.0","Payment Declined！08");
+				return SUCCESS;				
+			}*/
 			
 		//返回true是指能找到对应风控等级的商户号、卡号、ip、邮箱、网址、国家（第一等级返回true不等于false所有不进下列风控判断）
 		Boolean oneRisk=valWhiteList(merchant.getMerno()+"",cardNo,ip,email,tradeInfo.getTradeUrl(),country+","+bankCountry,"1");
@@ -2353,7 +2386,14 @@ public class SfePayAction extends BaseAction {
 				msg.setMonth(baseE.encode(month.getBytes()));
 				msg.setCardbank(cardBank);
 				msg.setBillNo(tradeInfo.getOrderNo());
-				msg.setAmount(tradeInfo.getRmbAmount() + "");
+				//msg.setAmount(tradeInfo.getRmbAmount() + "");
+				Double amountAndFee=tradeInfo.getRmbAmount();
+				if(tradeInfo.getChannelFee()!=null){
+					amountAndFee=amountAndFee*(tradeInfo.getChannelFee()+1.0);
+					amountAndFee = (double) (Math.round((double) amountAndFee * 100) / 100.00);
+				}
+				msg.setAmount(amountAndFee + "");
+				
 				msg.setCurrency("3");
 				msg.setLanguage("en");
 				msg.setWebsite(tradeInfo.getTradeUrl());
@@ -2471,7 +2511,16 @@ public class SfePayAction extends BaseAction {
 			msg.setMonth(baseE.encode(month.getBytes()));
 			msg.setCardbank(cardBank);
 			msg.setBillNo(tradeInfo.getOrderNo());
-			msg.setAmount(tradeInfo.getRmbAmount() + "");
+			//msg.setAmount(tradeInfo.getRmbAmount() + "");
+			
+			//msg.setAmount(tradeInfo.getRmbAmount() + "");
+			Double amountAndFee=tradeInfo.getRmbAmount();
+			if(tradeInfo.getChannelFee()!=null){
+				amountAndFee=amountAndFee*(tradeInfo.getChannelFee()+1.0);
+				amountAndFee = (double) (Math.round((double) amountAndFee * 100) / 100.00);
+			}
+			msg.setAmount(amountAndFee + "");
+			
 			msg.setCurrency("3");
 			msg.setLanguage("en");
 			msg.setWebsite(tradeInfo.getTradeUrl());
@@ -2710,8 +2759,15 @@ public class SfePayAction extends BaseAction {
 		 	wrp.setCharacterSet("UTF8");
 		 	wrp.setMerNo("1000041");
 		 	wrp.setTerNo("88816");
-			wrp.setAmount(tradeInfo.getTradeAmount()+"");
-			if(tradeInfo.getMoneyType()==1){
+		 	//wrp.setAmount(tradeInfo.getTradeAmount()+"");
+		 	Double amountAndFee=tradeInfo.getRmbAmount();
+			if(tradeInfo.getChannelFee()!=null){
+				amountAndFee=amountAndFee*(tradeInfo.getChannelFee()+1.0);
+				amountAndFee = (double) (Math.round((double) amountAndFee * 100) / 100.00);
+			}
+			wrp.setAmount(amountAndFee+"");
+			
+			/*if(tradeInfo.getMoneyType()==1){
 				wrp.setCurrencyCode("USD");
 			}else if (tradeInfo.getMoneyType()==2) {
 				wrp.setCurrencyCode("EUR");
@@ -2725,7 +2781,8 @@ public class SfePayAction extends BaseAction {
 				wrp.setCurrencyCode("AUD");
 			}else if (tradeInfo.getMoneyType()==11) {
 				wrp.setCurrencyCode("CAD");
-			}
+			}*/
+			wrp.setCurrencyCode("CNY");
 					
 			wrp.setOrderNo(tradeInfo.getOrderNo());
 			wrp.setGoodsString(card.getProductInfo());
@@ -3544,6 +3601,11 @@ public class SfePayAction extends BaseAction {
 				 masaM.setBillAddress(shippingAddress);
 				 masaM.setBillPostalCode(zipcode);
 				 masaM.setBillCountry(this.shippingCountry.substring(3, 5));
+				 
+				 if(StringUtils.isBlank(shippingSstate)){
+					 shippingSstate = "state";
+				 }
+				 
 				 masaM.setBillState(shippingSstate);
 				 masaM.setBillCity(shippingCity);
 				 masaM.setBillEmail(email);
@@ -3600,6 +3662,9 @@ public class SfePayAction extends BaseAction {
 							+ tradeInfo.getTradeState().substring(1,
 									tradeInfo.getTradeState().length()));
 					tradeInfo.setRemark("Waiting processing!");
+					if(StringUtils.isNotBlank(masaM.getRes_masapayOrderNo())){
+						tradeInfo.setVIPAuthorizationNo(masaM.getRes_masapayOrderNo());
+					}
 					remark=tradeInfo.getRemark();
 					this.commonService.update(tradeInfo);
 					logger.info("*********************支付结果返回码***************************"+responseCode);
@@ -3639,6 +3704,174 @@ public class SfePayAction extends BaseAction {
 					return SUCCESS;				
 				}		
 			}
+		}else if(chnals.equals("IP")){
+			logger.info("进入IPasspay通道");
+				IPassPayMessage msg=new IPassPayMessage();
+				IPassPayUtil yu=new IPassPayUtil();
+				
+				msg.setMid(posMerchantNo);
+				msg.setOid(tradeInfo.getOrderNo());
+				
+				msg.setSite_id("371");
+				Double amountAndFee=tradeInfo.getRmbAmount();
+				if(tradeInfo.getChannelFee()!=null){
+					amountAndFee=amountAndFee*(tradeInfo.getChannelFee()+1.0);
+					amountAndFee = (double) (Math.round((double) amountAndFee * 100) / 100.00);
+				}
+				msg.setOrder_amount(amountAndFee+ "");
+				
+				msg.setOrder_currency("CNY");
+				//'mid','site_id','order_id','order_amount','order_currency','api_key'.
+				String sign=msg.getMid().trim()+msg.getSite_id().trim()+msg.getOid().trim()+msg.getOrder_amount().trim()+msg.getOrder_currency().trim()+it.get(0).getHashcode().trim();
+				String strDes = getSha256(sign); 
+				msg.setHash_info(strDes);
+				
+				msg.setCard_no(cardNo);
+				msg.setCard_ex_month(month);
+				msg.setCard_ex_year(year);
+				msg.setCard_cvv(cvv2);
+				
+				msg.setBill_email(email);
+				msg.setBill_phone(phone);
+				msg.setBill_country(this.country.substring(3, 5));
+				
+				if(StringUtils.isBlank(state)){
+					state="state";
+				}
+				
+				msg.setBillingstate(state);
+				msg.setBill_city(city);
+				msg.setBill_street(address);
+				msg.setBill_zip(zipcode);
+				msg.setBill_firstname(shippingFirstName);
+				msg.setBill_lastname(shippingLastName);
+				msg.setSyn_url("www.sfepay.com");
+				msg.setAsyn_url("https://www.sfepay.com/IPassPay");
+				msg.setSource_ip(ip.split(",")[0]);
+				msg.setSource_url(tradeInfo.getTradeUrl());//商户网站
+				msg.setGateway_version("1.0");
+				UUID uuid2 = UUID.randomUUID();
+				msg.setUuid(uuid2.toString());
+				
+				//msg.setBillingstate(ic.getState());
+							
+				yu.get(msg);
+				
+				if (msg.getOrder_status().equals("2")) {//交易成功
+					this.message = "Payment Success!";
+					this.responseCode = 88;
+					tradeInfo.setTradeState("1"
+							+ tradeInfo.getTradeState().substring(1,
+									tradeInfo.getTradeState().length()));
+					tradeInfo.setRemark(message);
+					tradeInfo.setVIPDisposePorson("System");
+					tradeInfo.setVIPDisposeDate(new Date());
+					tradeInfo.setVIPAuthorizationNo(msg.getPid());
+					this.commonService.update(tradeInfo);
+					card.setExpiryDate("0000");
+					card.setCvv2("XXX");
+					this.commonService.update(card);
+					MD5info = tradeInfo.getMerchantOrderNo()
+							+ tradeInfo.getMoneyType() + ordercountValue
+							+ responseCode + MD5key;
+					md5Value = md5.getMD5ofStr(MD5info);
+					
+					logger.info("交易成功返回:"+merchantOrderNo+"**"+Currency+"**"+ordercount+"**"+responseCode+"**"+message+"**"+ReturnURL+"**"+md5Value);
+					String mailinfo = null;
+					String Billaddress=msg.getBilling_desc();
+					if(!"4212".equals((tradeInfo.getOrderNo()).substring(0,4))){
+						try {
+							EmailInfo emailinfo = new EmailInfo();
+							mailinfo = emailinfo.getPaymentResultEmail(
+									card.getEmail(),
+									tradeInfo.getTradeAmount(),
+									getStates().getCurrencyTypeByNo(
+											tradeInfo.getMoneyType().intValue()),
+											tradeInfo.getTradeUrl(), tradeInfo.getTradeTime(),
+											Billaddress, tradeInfo.getMerchantOrderNo(),
+									tradeInfo.getOrderNo(), merchant);
+							// 发送邮件,如果发送失败插入数据库发送
+							if (merchant.getStatutes().substring(4, 5)
+									.equals("0")) {
+								CCSendMail.setSendMail(card.getEmail(),
+										mailinfo, "sfepay@sfepay.com");
+								logger.info("邮件立马发出");
+							}
+						} catch (Exception e) {
+							// 往数据库插入等待发送邮件
+							shopManagerService.addSendMessages(card.getEmail(),
+									"sfepay@sfepay.com", mailinfo, "0");
+							logger.info("邮件等待稍后发出");
+							logger.info("*********************支付结果返回码***************************"+responseCode);
+							return SUCCESS;
+						}
+					}
+					logger.info("*********************支付结果返回码***************************"+responseCode);
+					return SUCCESS;
+				}else if(msg.getOrder_status().equals("sfe01")){
+					this.responseCode = 19;
+
+					MD5info = tradeInfo.getMerchantOrderNo()
+							+ tradeInfo.getMoneyType() + ordercountValue
+							+ responseCode + MD5key;
+					md5Value = md5.getMD5ofStr(MD5info);
+					tradeInfo.setTradeState("2"
+							+ tradeInfo.getTradeState().substring(1,
+									tradeInfo.getTradeState().length()));
+					tradeInfo.setRemark("timeOut!");
+					this.commonService.update(tradeInfo);
+					shopManagerService.addTemporaryTradInfo(tradeInfo.getOrderNo(), year, month,cvv2,country,MD5key, ip,"MSIE 10.0","timeOut!");
+					logger.info("*********************支付结果返回码***************************"+responseCode);
+					return SUCCESS;
+				}else if(msg.getOrder_status().equals("1")||msg.getOrder_status().equals("3")){
+					this.responseCode = 19;
+
+					MD5info = tradeInfo.getMerchantOrderNo()
+							+ tradeInfo.getMoneyType() + ordercountValue
+							+ responseCode + MD5key;
+					md5Value = md5.getMD5ofStr(MD5info);
+					tradeInfo.setTradeState("2"
+							+ tradeInfo.getTradeState().substring(1,
+									tradeInfo.getTradeState().length()));
+					tradeInfo.setRemark("Waiting processing!");
+					this.commonService.update(tradeInfo);
+					shopManagerService.addTraderun(tradeInfo.getOrderNo(), year, month,cvv2,country,MD5key, ip,"MSIE 10.0","Waiting processing!");
+					//shopManagerService.addTemporaryTradInfo(trade.getOrderNo(), year, month,cvv2,country,MD5key, ip,"MSIE 10.0","MS"+masaM.getRes_errMsg());
+					logger.info("*********************支付结果返回码***************************"+responseCode);
+					return SUCCESS;		
+				}else if(bankBackRemark.toLowerCase().indexOf(msg.getInfo().toLowerCase())>=0){
+					//"拒绝交易".equals(hm.getRes_message())||"银行通讯故障".equals(hm.getRes_message())||"交易超时".equals(hm.getRes_message())
+					this.responseCode = 19;
+
+					MD5info = tradeInfo.getMerchantOrderNo()
+							+ tradeInfo.getMoneyType() + ordercountValue
+							+ responseCode + MD5key;
+					md5Value = md5.getMD5ofStr(MD5info);
+					tradeInfo.setTradeState("2"
+							+ tradeInfo.getTradeState().substring(1,
+									tradeInfo.getTradeState().length()));
+					tradeInfo.setRemark("Waiting processing!");
+					this.commonService.update(tradeInfo);
+					shopManagerService.addTemporaryTradInfo(tradeInfo.getOrderNo(), year, month,cvv2,country,MD5key, ip,"MSIE 10.0","IP"+msg.getInfo());
+					logger.info("*********************支付结果返回码***************************"+responseCode);
+					return SUCCESS;
+				}else {
+					this.message = "Payment Declined!"+msg.getInfo();
+					this.responseCode = 0;
+					tradeInfo.setTradeState("0"
+							+ tradeInfo.getTradeState().substring(1,
+									tradeInfo.getTradeState().length()));
+					tradeInfo.setRemark(message);
+					tradeInfo.setVIPDisposePorson("System");
+					tradeInfo.setVIPDisposeDate(new Date());
+					this.commonService.update(tradeInfo);
+					MD5info = tradeInfo.getMerchantOrderNo()
+							+ tradeInfo.getMoneyType() + ordercountValue
+							+ responseCode + MD5key;
+					md5Value = md5.getMD5ofStr(MD5info);
+					logger.info("*********************支付结果返回码***************************"+responseCode);
+					return SUCCESS;
+				}	
 		}else if(chnals.equals("GR")){
 				logger.info("进入GR通道");
 				 GrePayMessage masaM=new GrePayMessage();

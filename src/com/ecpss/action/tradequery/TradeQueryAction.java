@@ -348,7 +348,7 @@ public class TradeQueryAction extends BaseAction{
 		String totleCount="select count(*)";
 //		String selectquery="select ti,m,ci,c " ;
 		String selectquery="SELECT  * FROM (SELECT A.*, ROWNUM RN FROM (select ti.orderNo,ti.merchantOrderNo,m.merno,to_char(ti.tradeTime,'yy-mm-dd hh24:mi:ss'),ti.tradeAmount,ti.moneyType,ti.rmbAmount,c.channelName,ti.tradeState,ti.backCount,ti.isPicture,ti.isTrackNo,to_char(ti.VIPDisposeDate,'yy-mm-dd hh24:mi:ss'),ti.VIPDisposePorson,ti.VIPAuthorizationNo,ti.VIPBatchNo,ti.remark,ti.VIPTerminalNo,to_char(ti.applyTime,'yy-mm-dd hh24:mi:ss'),ti.matterDepict,ti.beginmoney,ti.pre_money_rmb,ti.tradeurl,ci.cardNo,ci.shippingFullName,ci.email,ci.address,ci.ip,ci.shippingPhone";
-		String downquery="select ti.orderNo,ti.merchantOrderNo,m.merno,to_char(ti.tradeTime,'yy-mm-dd hh24:mi:ss'),ti.tradeAmount,ti.moneyType,ti.rmbAmount,c.channelName,ti.tradeState,ti.backCount,ti.isPicture,ti.isTrackNo,to_char(ti.VIPDisposeDate,'yy-mm-dd hh24:mi:ss'),ti.VIPDisposePorson,ti.VIPAuthorizationNo,ti.VIPBatchNo,ti.remark,ti.VIPTerminalNo,to_char(ti.applyTime,'yy-mm-dd hh24:mi:ss'),ti.matterDepict,ti.beginmoney,ti.pre_money_rmb,ti.tradeurl,ci.cardNo,ci.shippingFullName,ci.email,ci.address,ci.ip,ci.shippingPhone";
+		String downquery="select ti.orderNo,ti.merchantOrderNo,m.merno,to_char(ti.tradeTime,'yy-mm-dd hh24:mi:ss'),ti.tradeAmount,ti.moneyType,ti.rmbAmount,c.channelName,ti.tradeState,ti.backCount,ti.isPicture,ti.isTrackNo,to_char(ti.VIPDisposeDate,'yy-mm-dd hh24:mi:ss'),ti.VIPDisposePorson,ti.VIPAuthorizationNo,ti.VIPBatchNo,ti.remark,ti.VIPTerminalNo,to_char(ti.applyTime,'yy-mm-dd hh24:mi:ss'),ti.matterDepict,ti.beginmoney,ti.pre_money_rmb,ti.tradeurl,ci.cardNo,ci.shippingFullName,ci.email,ci.address,ci.ip,ci.shippingPhone,ci.country";
 		sb.append(" from International_Tradeinfo ti left join " +
 						"International_Merchant  m on ti.merchantId=m.id left join " +
 						"International_CardholdersInfo ci on  ci.tradeId=ti.id left join " +
@@ -684,7 +684,7 @@ public class TradeQueryAction extends BaseAction{
 				"交易币种", "通道", "支付情况", "是否勾兑", "是否退款",
 				"退款金额", "是否冻结", "是否划款", "是否拒付",
 				"是否传图", "是否传号", "处理时间", "处理人", "授权号", "批次号",
-				"终端号", "交易网址", "备注", "划款申请时间","原始金额","卡号","姓名","邮箱","地址","IP","电话"});
+				"终端号", "交易网址", "备注", "划款申请时间","原始金额","卡号","姓名","邮箱","地址","IP","电话","国家"});
 		export.setTableName("Trade");
 		int i = 1;
 		for (Object[] obj : oArray) {
@@ -720,7 +720,7 @@ public class TradeQueryAction extends BaseAction{
 					obj[22],
 					obj[16],
 					obj[18],
-					obj[20],AES.getCarNo(obj[23].toString().trim()),obj[24],obj[25],obj[26],obj[27],obj[28]});
+					obj[20],AES.getCarNo(obj[23].toString().trim()),obj[24],obj[25],obj[26],obj[27],obj[28],obj[29]});
 			
 			i++;
 		}

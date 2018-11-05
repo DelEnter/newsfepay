@@ -2,6 +2,8 @@ package com.ecpss.action.express;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.security.MessageDigest;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -16,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -25,6 +28,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 import vpn.IPassPayTemporMessage;
 import vpn.IpassPayTemporary;
+import vpn.MSqueryorder;
+import vpn.MSrefundorder;
+import vpn.Msqueryorderutil;
+import vpn.Msrefundorderutil;
 import vpn.ZMTTradeurlMessage;
 import vpn.ZMTTradeurlUtil;
 
@@ -32,6 +39,7 @@ import com.ecpss.action.BaseAction;
 import com.ecpss.action.TemporarySynThread;
 import com.ecpss.model.payment.InternationalCardholdersInfo;
 import com.ecpss.model.payment.InternationalTradeinfo;
+import com.ecpss.model.refund.InternationalRefundManager;
 import com.ecpss.model.shop.InternationalMerchant;
 import com.ecpss.service.common.CommonService;
 import com.ecpss.service.iservice.ShopManagerService;
@@ -89,6 +97,15 @@ public class ListtradeAction extends BaseAction {
 	public String errCode;
 	public String errMsg;
 	
+	private String refundOrderNo;
+	//private String merchantOrderNo;
+	private String masapayRefundOrderNo;
+	private String refundAmount;
+	
+	private String TransactionId;
+	private String OrderId;
+	private String Status;
+	private String TransactionAmount;
 	
 	Logger logger = Logger.getLogger(ListtradeAction.class.getName());	
 
@@ -134,7 +151,7 @@ public class ListtradeAction extends BaseAction {
 			JSONObject json = new JSONObject();
 			json.put("merNo", merNo);
 			JSONArray array = new JSONArray();
-					
+
 			for(Object[] obj:list){					
 				AES aes=new AES();
 				String cardNo="";
@@ -546,8 +563,13 @@ public class ListtradeAction extends BaseAction {
 					ts.start();
 				}
 				if("3918".equals((trade.getOrderNo()).substring(0,4))||"4110".equals((trade.getOrderNo()).substring(0,4))){
-					TemporarySynThread ts=new TemporarySynThread("http://www.win4mall.com/OrderAutomatic",trade.getMerchantOrderNo(),"1", "99BILL*bisunhealth");
-					ts.start();
+					if("5872".equals(trade.getTradeChannel()+"")) {
+						TemporarySynThread ts = new TemporarySynThread("http://www.win4mall.com/OrderAutomatic", trade.getMerchantOrderNo(), "1", "99BILL*bisunhealth");
+						ts.start();
+					}else{
+						TemporarySynThread ts = new TemporarySynThread("http://www.win4mall.com/OrderAutomatic", trade.getMerchantOrderNo(), "1", "MAS*huashoulin.com");
+						ts.start();
+					}
 				}
 				if("4066".equals((trade.getOrderNo()).substring(0,4))||"4216".equals((trade.getOrderNo()).substring(0,4))){
 					if("maxmaillots.org".equals(trade.getTradeUrl())){
@@ -615,6 +637,259 @@ public class ListtradeAction extends BaseAction {
 		 ServletOutputStream out = ServletActionContext.getResponse().getOutputStream();
 		 out.print("OK");		 
 	 }
+	
+	public void masapayquery() throws Exception{
+		//String sql = "select distinct(internatio1_.orderno) from international_refundmanager internatio0_, INTERNATIONAL_TRADEINFO internatio1_, INTERNATIONAL_MERCHANT internatio2_, international_cardholdersinfo internatio3_ where internatio0_.tradeId=internatio1_.id and internatio1_.merchantId=internatio2_.id and internatio3_.tradeId=internatio1_.id and internatio0_.applydate>=to_date('2018-10-31','yyyy-MM-dd hh24:mi:ss') and internatio2_.merno=4161";
+		//String sql = "select distinct(internatio1_.orderno) from international_refundmanager internatio0_, INTERNATIONAL_TRADEINFO internatio1_, INTERNATIONAL_MERCHANT internatio2_ where internatio0_.tradeId=internatio1_.id and internatio1_.merchantId=internatio2_.id and internatio0_.applydate>=to_date('2010-10-31','yyyy-MM-dd hh24:mi:ss') and internatio2_.merno=3674";
+		StringBuffer sb = new StringBuffer();	
+		String selectquery = "select distinct(ti.orderNo) " + // 1		
+		sb
+				.append("from International_Tradeinfo ti,"+
+						"International_RefundManager rm," +						
+						"International_Merchant m," +
+						"International_CardholdersInfo c " +
+						"where rm.tradeId=ti.id " +
+						"and ti.merchantId=m.id " +
+						"and c.tradeId=ti.id " +
+						"and rm.applydate >=to_date('2018-11-02', 'yyyy-MM-dd hh24:mi:ss') "+
+						"and m.merno=4161");	
+		
+		
+		List list = this.commonService.getByList(selectquery);
+		logger.info("masapay查询数据条数："+list.size()+"");
+		MSqueryorder trade = new MSqueryorder();
+		Msqueryorderutil tt = new Msqueryorderutil();
+
+	 	trade.setVersion("1.0");
+	 	trade.setMerchantId("801128553113051");
+	 	trade.setCharset("utf-8");
+	 	trade.setLanguage("en");
+	 	trade.setSignType("SHA256");
+	 	trade.setQueryType("1");
+		for (int i = 0; i < list.size(); i++) {
+			 	String sign ="version=1.0&merchantId=801128553113051&charset=utf-8&language=en&signType=SHA256&queryType=1&merchantOrderNo="+list.get(i).toString()+"&key=K_iTBOu~";		 	
+			 	trade.setSignMsg(getSha256(sign)); 
+			 	trade.setMerchantOrderNo(list.get(i).toString());
+			 	String res = tt.get(trade);	
+			 	InternationalTradeinfo order = (InternationalTradeinfo) commonService.uniqueResult("from InternationalTradeinfo where orderNo='"+list.get(i).toString()+"'");
+			 	
+			 	JSONObject json = JSONObject.fromObject(res);
+			 	String a = json.getJSONArray("list").getString(0);
+			 	JSONObject json2 = JSONObject.fromObject(a);
+			 	String b = json2.getString("masapayOrderNo");
+			 	//System.out.println(trade.getMerchantOrderNo());
+			 	order.setVIPAuthorizationNo(b);
+			 	commonService.update(order);
+		}
+	}
+	
+	public void masapayref() throws Exception{
+		StringBuffer sb = new StringBuffer();	
+		String selectquery = "select distinct(rm.id) " + // 1		
+		sb
+				.append("from International_Tradeinfo ti,"+
+						"International_RefundManager rm," +						
+						"International_Merchant m," +
+						"International_CardholdersInfo c " +
+						"where rm.tradeId=ti.id " +
+						"and ti.merchantId=m.id " +
+						"and c.tradeId=ti.id " +
+						"and rm.applydate >=to_date('2018-11-02', 'yyyy-MM-dd hh24:mi:ss') "+
+						"and m.merno=4161");	
+		
+		
+		List list = this.commonService.getByList(selectquery);
+		logger.info("masapay查询数据条数："+list.size()+"");
+		MSrefundorder trade = new MSrefundorder();
+		Msrefundorderutil tt = new Msrefundorderutil();
+
+	 	trade.setVersion("1.9");
+	 	trade.setMerchantId("801128553113051");
+	 	trade.setCharset("utf-8");
+	 	trade.setLanguage("en");
+	 	trade.setSignType("SHA256");
+		for (int i = 0; i < list.size(); i++) {
+				
+				InternationalRefundManager refund = (InternationalRefundManager) commonService.uniqueResult("from InternationalRefundManager where id='"+list.get(i).toString()+"'");
+				InternationalTradeinfo order = (InternationalTradeinfo) commonService.uniqueResult("from InternationalTradeinfo where id='"+refund.getTradeId()+"'");
+				trade.setRefundOrderNo(refund.getRefundNo());
+				trade.setMerchantOrderNo(order.getOrderNo());
+				trade.setMasapayOrderNo(order.getVIPAuthorizationNo());
+				//trade.setRefundAmount(refund.getRefundRMBAmount()+"");
+				Double amountAndFee=refund.getRefundRMBAmount();
+				/*if(refund.getRefundRMBAmount()!=null){
+					amountAndFee=amountAndFee*(order.getChannelFee()+1.0);
+					amountAndFee = (double) (Math.round((double) amountAndFee * 100) / 100.00);
+				 }*/
+				trade.setRefundAmount((int)(amountAndFee*100)+"");
+				trade.setCurrencyCode("CNY");
+				Date currentTime = new Date();
+				SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddhhmmss");
+				String dateString = formatter.format(currentTime);
+				trade.setRefundSubmitTime(dateString);
+				trade.setCallbackUrl("http://www.sfepay.com/masapayrefund");
+				
+				String sign = "version=1.9&merchantId=801128553113051&charset=utf-8&language=en&signType=SHA256&refundOrderNo="+refund.getRefundNo()+"&merchantOrderNo="+order.getOrderNo()+"&masapayOrderNo="+order.getVIPAuthorizationNo()+"&refundAmount="+trade.getRefundAmount()+"&currencyCode=CNY&refundSubmitTime="+dateString+"&callbackUrl=http://www.sfepay.com/masapayrefund&key=K_iTBOu~";
+
+			 	trade.setSignMsg(getSha256(sign)); 
+			 	
+			 	
+			 	String res = tt.get(trade);	
+	 	
+			 	JSONObject json = JSONObject.fromObject(res);
+			 	
+			 	//System.out.println(trade.getMerchantOrderNo());
+			 	if("10".equals(json.getString("resultCode"))){
+			 		refund.setRemark("Success!");
+			 	}else{
+			 		refund.setRemark(json.getString("errorMsg"));
+			 	}
+			 	commonService.update(refund);
+		}
+	}
+	
+	public void masapayrefund() throws Exception{
+		HttpServletRequest request = ServletActionContext.getRequest();
+		logger.info("masapay退款异步返回信息:"+resultCode);
+		logger.info("merchantOrderNo:"+merchantOrderNo+"*****resultCode:"+resultCode+"*****refundAmount:"+refundAmount+"*****masapayRefundOrderNo"+masapayRefundOrderNo+"*****refundOrderNo"+refundOrderNo);
+		//InternationalTradeinfo trade=(InternationalTradeinfo) commonService.uniqueResult("from InternationalTradeinfo where orderNo='"+merchantOrderNo+"'");
+		InternationalRefundManager refund = (InternationalRefundManager) commonService.uniqueResult("from InternationalRefundManager where refundNo='"+refundOrderNo.toString()+"'");
+		if("10".equals(resultCode)){
+			//InternationalTradeinfo trade=(InternationalTradeinfo) commonService.uniqueResult("from InternationalTradeinfo where orderNo='"+merchantOrderNo+"'");
+			/*StringBuffer buffer = new StringBuffer(trade.getTradeState());
+			buffer.replace(1, 2, "1");*/
+			refund.setRemark("refund ss");
+		}else{
+			refund.setRemark("refund ff"+errMsg.toString());
+		}
+		commonService.update(refund);
+		
+		ServletOutputStream out = ServletActionContext.getResponse().getOutputStream();
+		out.print("OK");
+	}
+	
+	public void quanqiupay() throws Exception{
+		HttpServletRequest request = ServletActionContext.getRequest();
+		logger.info("Gofpay异步返回信息:"+request.getParameter("Status"));
+		logger.info("TransactionId:"+TransactionId+"OrderId:"+OrderId+"stauts:"+Status+"TransactionAmount:"+TransactionAmount);
+		InternationalTradeinfo trade=(InternationalTradeinfo) commonService.uniqueResult("from InternationalTradeinfo where orderNo='"+OrderId.toString()+"'");
+		InternationalMerchant mer=(InternationalMerchant) commonService.uniqueResult("from InternationalMerchant where id='"+trade.getMerchantId()+"'");
+		InternationalCardholdersInfo card=(InternationalCardholdersInfo) commonService.uniqueResult("from InternationalCardholdersInfo where tradeId='"+trade.getId()+"'");
+		
+/*		String cardNo=AES.getCarNo(card.getCardNo());		
+		String expiryDate = AES.getCarNo(card.getExpiryDate());
+		String month = expiryDate.substring(0,2);
+		String year = expiryDate.substring(2,4);
+		String cvv = AES.getCarNo(card.getCvv2());*/
+							
+		StringBuffer buffer = new StringBuffer(trade.getTradeState());
+		Thread.sleep(2*1000);		
+
+		 	if(Status.equals("Success")){				 		
+		 		buffer.replace(0, 1, "1");	
+		 		trade.setRemark("Payment Success!");
+		 		this.responseCode=88;
+		 		/*MD5info = trade.getMerchantOrderNo()
+						+ trade.getMoneyType() + ordercountValue
+						+ responseCode + MD5key;
+				md5Value = md5.getMD5ofStr(MD5info);*/
+		 		this.message = "Payment Success!";	
+		 		
+				if("1001".equals((trade.getOrderNo()).substring(0,4))||"4136".equals((trade.getOrderNo()).substring(0,4))){
+					TemporarySynThread ts=new TemporarySynThread("http://www.xingbill.com/synTradeInfo",trade.getMerchantOrderNo(), "1", message);
+					ts.start();
+				}
+				if("4160".equals((trade.getOrderNo()).substring(0,4))||"4161".equals((trade.getOrderNo()).substring(0,4))){
+					/*TemporarySynThread ts=new TemporarySynThread("http://www.ipasspay.biz/index.php/Thirdpay/Sfepay/notifyUrl",trade.getMerchantOrderNo(), "1", trade.getRemark());
+					ts.start();*/
+				 	IPassPayTemporMessage ipass = new IPassPayTemporMessage();
+				 	IpassPayTemporary tt = new IpassPayTemporary();
+				 	ipass.setOrderNo(trade.getMerchantOrderNo());
+				 	ipass.setRes_orderStatus("1");
+				 	ipass.setRemark(trade.getRemark());
+				 	tt.get(ipass);
+				}
+				if("4169".equals((trade.getOrderNo()).substring(0,4))){
+					TemporarySynThread ts=new TemporarySynThread("http://www.jjqsc.com/PayResult.php",trade.getMerchantOrderNo(), "1", trade.getRemark());
+					ts.start();
+				}
+				if("4165".equals((trade.getOrderNo()).substring(0,4))){
+					TemporarySynThread ts=new TemporarySynThread("http://www.youkutuan.com/do.php?act=charge_okok",trade.getMerchantOrderNo(), "1", trade.getRemark());
+					ts.start();
+				}
+				if("3918".equals((trade.getOrderNo()).substring(0,4))||"4110".equals((trade.getOrderNo()).substring(0,4))){
+						TemporarySynThread ts = new TemporarySynThread("http://www.win4mall.com/OrderAutomatic", trade.getMerchantOrderNo(), "1", "JIAMEI-EC");
+						ts.start();					
+				}
+				if("4066".equals((trade.getOrderNo()).substring(0,4))||"4216".equals((trade.getOrderNo()).substring(0,4))){
+					if("maxmaillots.org".equals(trade.getTradeUrl())){
+						TemporarySynThread ts=new TemporarySynThread("http://www.maxmaillots.org/payment_online_feback.php",trade.getMerchantOrderNo(),"1", trade.getRemark());
+						ts.start();
+					}else{
+						TemporarySynThread ts=new TemporarySynThread("http://"+trade.getTradeUrl()+"/payment_online_feback.php",trade.getMerchantOrderNo(),"1", trade.getRemark());
+						ts.start();
+					}
+				}
+		 	}else if(Status.equals("Pending")||Status.equals("Processing")){	
+		 		String code = String.valueOf(buffer.charAt(0));
+		 		if(!"1".equals(code)){
+			 		buffer.replace(0, 1, "2");
+			 		trade.setRemark("Waiting processing*QP!");
+			 		this.responseCode=19;
+			 		this.message = "Waiting processing*QP!";	
+		 		}
+		 	}else{
+		 		buffer.replace(0, 1, "0");
+		 		trade.setRemark(errMsg);
+		 		this.responseCode=0;
+		 		this.message = "Payment Declined!"; 
+		 		
+				if("1001".equals((trade.getOrderNo()).substring(0,4))||"4136".equals((trade.getOrderNo()).substring(0,4))){
+					TemporarySynThread ts=new TemporarySynThread("http://www.xingbill.com/synTradeInfo",trade.getMerchantOrderNo(), "0", message);
+					ts.start();
+				}
+				if("4160".equals((trade.getOrderNo()).substring(0,4))||"4161".equals((trade.getOrderNo()).substring(0,4))){
+					/*TemporarySynThread ts=new TemporarySynThread("http://www.ipasspay.biz/index.php/Thirdpay/Sfepay/notifyUrl",trade.getMerchantOrderNo(), "0", trade.getRemark());
+					ts.start();*/
+				 	IPassPayTemporMessage ipass = new IPassPayTemporMessage();
+				 	IpassPayTemporary tt = new IpassPayTemporary();
+				 	ipass.setOrderNo(trade.getMerchantOrderNo());
+				 	ipass.setRes_orderStatus("0");
+				 	ipass.setRemark(trade.getRemark());
+				 	tt.get(ipass);
+				}
+				if("4169".equals((trade.getOrderNo()).substring(0,4))){
+					TemporarySynThread ts=new TemporarySynThread("http://www.jjqsc.com/PayResult.php",trade.getMerchantOrderNo(), "0", trade.getRemark());
+					ts.start();
+				}
+				if("4165".equals((trade.getOrderNo()).substring(0,4))){
+					TemporarySynThread ts=new TemporarySynThread("http://www.youkutuan.com/do.php?act=charge_okok",trade.getMerchantOrderNo(), "0", trade.getRemark());
+					ts.start();
+				}
+				if("3918".equals((trade.getOrderNo()).substring(0,4))||"4110".equals((trade.getOrderNo()).substring(0,4))){
+					TemporarySynThread ts=new TemporarySynThread("http://www.win4mall.com/OrderAutomatic",trade.getMerchantOrderNo(),"0", trade.getRemark());
+					ts.start();
+				}	
+				if("4066".equals((trade.getOrderNo()).substring(0,4))||"4216".equals((trade.getOrderNo()).substring(0,4))){
+					if("maxmaillots.org".equals(trade.getTradeUrl())){
+						TemporarySynThread ts=new TemporarySynThread("http://www.maxmaillots.org/payment_online_feback.php",trade.getMerchantOrderNo(),"0", trade.getRemark());
+						ts.start();
+					}else{
+						TemporarySynThread ts=new TemporarySynThread("http://"+trade.getTradeUrl()+"/payment_online_feback.php",trade.getMerchantOrderNo(),"0", trade.getRemark());
+						ts.start();
+					}
+				}
+				//shopManagerService.addTemporaryTradInfo(trade.getOrderNo(), year, month,cvv,card.getCountry(),mer.getMd5key(), card.getIp(),"MSIE 10.0","MS"+errMsg);
+		 	}
+		 trade.setTradeState(buffer.toString());
+		 commonService.update(trade);
+		 logger.info("**************支付返回码*************"+responseCode);
+		 ServletOutputStream out = ServletActionContext.getResponse().getOutputStream();
+		 out.print("OK");		 
+	 }
+	
+	
+	
 	
 /*	public void doGet(){
 		String sql = "select distinct(t.tradewebsite) from International_Webchannels t where merchanid = "+"4705";
@@ -1012,4 +1287,65 @@ public class ListtradeAction extends BaseAction {
 		this.remark = remark;
 	}
 	
+	public String getRefundOrderNo() {
+		return refundOrderNo;
+	}
+
+	public void setRefundOrderNo(String refundOrderNo) {
+		this.refundOrderNo = refundOrderNo;
+	}
+
+	public String getMasapayRefundOrderNo() {
+		return masapayRefundOrderNo;
+	}
+
+	public void setMasapayRefundOrderNo(String masapayRefundOrderNo) {
+		this.masapayRefundOrderNo = masapayRefundOrderNo;
+	}
+
+	public String getRefundAmount() {
+		return refundAmount;
+	}
+
+	public void setRefundAmount(String refundAmount) {
+		this.refundAmount = refundAmount;
+	}
+
+	public String getTransactionId() {
+		return TransactionId;
+	}
+
+	public void setTransactionId(String transactionId) {
+		TransactionId = transactionId;
+	}
+
+	public String getOrderId() {
+		return OrderId;
+	}
+
+	public void setOrderId(String orderId) {
+		OrderId = orderId;
+	}
+
+	public String getTransactionAmount() {
+		return TransactionAmount;
+	}
+
+	public void setTransactionAmount(String transactionAmount) {
+		TransactionAmount = transactionAmount;
+	}
+
+	public static String getSha256(String strData) {
+		String output = "";
+		try {
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			byte[] hash = digest.digest(strData.getBytes("UTF-8"));
+			output = Hex.encodeHexString(hash);
+			System.out.println(output);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return output;
+	}
 }

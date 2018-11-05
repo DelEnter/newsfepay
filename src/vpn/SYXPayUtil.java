@@ -137,7 +137,7 @@ public class SYXPayUtil{
 		nvps1.add(v_billphone);
 		nvps1.add(v_billemail);
 
-		//this.doGet(map2,nvps1);
+		this.doGet(map2,nvps1);
 
 		List<NameValuePair> nvps2 = new ArrayList<NameValuePair>();
 
@@ -171,13 +171,13 @@ public class SYXPayUtil{
 		nvps2.add(v_billphone);
 		nvps2.add(v_billemail);
 		
-		try{
+		/*try{
 			SYXPayUtil h = new SYXPayUtil();
 			logger.info("提交数据:"+nvps2.toString());
 			String result = h.httpPost(nvps1,postUrl);
 			logger.info("返回数据："+result);
-			/*JSONObject jasonObject = JSONObject.fromObject(result);
-            Map<String, Object> map= (Map) jasonObject;*/
+			JSONObject jasonObject = JSONObject.fromObject(result);
+            Map<String, Object> map= (Map) jasonObject;
 			String ll = result.replace("\r","");
 			String zz[] = ll.split("\n");
 			for(int i=0;i<zz.length;i++) {
@@ -215,8 +215,8 @@ public class SYXPayUtil{
 				logger.info("提交数据:"+nvps2.toString());
 				String result = h.httpPost(nvps1,postUrl);
 				logger.info("返回数据："+result);
-				/*JSONObject jasonObject = JSONObject.fromObject(result);
-	            Map<String, Object> map= (Map) jasonObject;*/
+				JSONObject jasonObject = JSONObject.fromObject(result);
+	            Map<String, Object> map= (Map) jasonObject;
 				String ll = result.replace("\r","");
 				String zz[] = ll.split("\n");
 				for(int i=0;i<zz.length;i++) {
@@ -260,7 +260,7 @@ public class SYXPayUtil{
             	trade.setV_pstring("");
             	trade.setV_pstatus("");
 			}
-		}
+		}*/
 	}
 	public String httpPost(List<NameValuePair> nvps, String url)
 			throws Exception {

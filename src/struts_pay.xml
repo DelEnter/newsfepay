@@ -63,6 +63,9 @@
 		<!-- Gofpay异步通知处理 -->
 		<action name="Gofpay" class="com.ecpss.action.express.ListtradeAction" method="Gofpay">
 		</action>
+		<!-- masapay查询订单接口 -->
+		<action name="masapayquery" class="com.ecpss.action.express.ListtradeAction" method="masapayquery">
+		</action>
 		
 		<!-- sfe开放接口-->
 		<action name="spay" class="com.ecpss.action.pay.SfePayAction" method="pay">

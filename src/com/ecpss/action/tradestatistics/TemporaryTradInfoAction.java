@@ -44,6 +44,8 @@ import vpn.MasaPayMessage;
 import vpn.MasaPayUtil;
 import vpn.PayClubMessage;
 import vpn.PayClubUtil;
+import vpn.QuanQiuPayMessage;
+import vpn.QuanQiuPayUtil;
 import vpn.SfeMessage;
 import vpn.SfeUtil;
 import vpn.VpnUtil;
@@ -1140,6 +1142,15 @@ public class TemporaryTradInfoAction extends BaseAction {
 				channelId="269";
 			}
 			InternationalTerminalManager tim=(InternationalTerminalManager) commonService.uniqueResult("from InternationalTerminalManager where id='"+channelId+"'");
+			
+			List<InternationalMerchantChannels> imc=this.commonService.list("from InternationalMerchantChannels mc where mc.merchantId='"+trade.getMerchantId()+"' and mc.channelId='"+tim.getChannelId()+"'");
+			if(imc!=null&&imc.size()>0){
+				InternationalMerchantChannels channel=imc.get(0);
+				logger.info("*********更新通道使用费*************");
+				trade.setChannelFee(channel.getChannelFee());
+			}
+			
+			
 			BASE64Encoder baseE=new BASE64Encoder(); 
 			msg.setCardnum(baseE.encode(cardNo.getBytes()));
 			msg.setCvv2(baseE.encode(tem.getCvv2().getBytes()));
@@ -1291,6 +1302,14 @@ public class TemporaryTradInfoAction extends BaseAction {
 				channelId="308";
 			}
 			InternationalTerminalManager tim=(InternationalTerminalManager) commonService.uniqueResult("from InternationalTerminalManager where id='"+channelId+"'");
+			
+			List<InternationalMerchantChannels> imc=this.commonService.list("from InternationalMerchantChannels mc where mc.merchantId='"+trade.getMerchantId()+"' and mc.channelId='"+tim.getChannelId()+"'");
+			if(imc!=null&&imc.size()>0){
+				InternationalMerchantChannels channel=imc.get(0);
+				logger.info("*********更新通道使用费*************");
+				trade.setChannelFee(channel.getChannelFee());
+			}
+			
 			BASE64Encoder baseE=new BASE64Encoder(); 
 			msg.setCardnum(baseE.encode(cardNo.getBytes()));
 			msg.setCvv2(baseE.encode(tem.getCvv2().getBytes()));
@@ -1615,6 +1634,14 @@ public class TemporaryTradInfoAction extends BaseAction {
 				channelId="303";
 			}
 			InternationalTerminalManager tim=(InternationalTerminalManager) commonService.uniqueResult("from InternationalTerminalManager where id='"+channelId+"'");
+			
+			List<InternationalMerchantChannels> imc=this.commonService.list("from InternationalMerchantChannels mc where mc.merchantId='"+trade.getMerchantId()+"' and mc.channelId='"+tim.getChannelId()+"'");
+			if(imc!=null&&imc.size()>0){
+				InternationalMerchantChannels channel=imc.get(0);
+				logger.info("*********更新通道使用费*************");
+				trade.setChannelFee(channel.getChannelFee());
+			}			
+			
 			msg.setMid(tim.getMerchantNo());
 			msg.setOid(trade.getOrderNo());
 			//msg.setMid("20331");
@@ -1642,12 +1669,13 @@ public class TemporaryTradInfoAction extends BaseAction {
 			msg.setBill_phone(ic.getShippingPhone());
 			msg.setBill_country(ic.getCountry());
 			
-			String state=ic.getShippingState();
-			if(StringUtils.isBlank(state)){
-				state="state";
-			}
+			if(ic.getShippingState()!=null){
+				 msg.setBillingstate(ic.getShippingState().trim());//美国加拿大州县转换
+			 }else{
+				 msg.setBillingstate("state");
+			 }
 			
-			msg.setBillingstate(state);
+			//msg.setBillingstate(state);
 			msg.setBill_city(ic.getShippingCity());
 			msg.setBill_street(ic.getShippingAddress());
 			msg.setBill_zip(ic.getShippingZip());
@@ -1660,9 +1688,7 @@ public class TemporaryTradInfoAction extends BaseAction {
 			msg.setGateway_version("1.0");
 			UUID uuid2 = UUID.randomUUID();
 			msg.setUuid(uuid2.toString());
-			
-			msg.setBillingstate(ic.getState());
-						
+		
 			yu.get(msg);
 
 			logger.info("vip交易结果："+msg.getOrder_status());
@@ -1705,12 +1731,12 @@ public class TemporaryTradInfoAction extends BaseAction {
 								trade.getTradeState().length()));
 				backSussess="6";			
 			}else{
-				orderList=orderList+trade.getOrderNo()+"("+msg.getOrder_status()+")、";
+				orderList=orderList+trade.getOrderNo()+"("+msg.getInfo()+")、";
 //				trade.setTradeState("0"
 //						+ trade.getTradeState().substring(1,
 //								trade.getTradeState().length()));
 				if(!"sfe01".equals(msg.getOrder_status())){
-					trade.setRemark("1093high risk!" +msg.getOrder_status());
+					trade.setRemark("1093high risk!" +msg.getInfo());
 				}
 				backSussess="0";
 				backMessage=trade.getRemark();
@@ -1763,7 +1789,201 @@ public class TemporaryTradInfoAction extends BaseAction {
 			commonService.update(tem);
 		}
 		}
+		}else if("QP".equals(channelName)){
+			logger.info("进入QuanQiuPay通道");
+			QuanQiuPayMessage msg=new QuanQiuPayMessage();
+			QuanQiuPayUtil yu=new QuanQiuPayUtil();
+			
+			String channelId="";
+			if("4".equals(cardNo.substring(0, 1))){			
+				channelId="309";
+			}
+			if("5".equals(cardNo.substring(0, 1))){				
+				channelId="310";
+			}
+
+			InternationalTerminalManager tim=(InternationalTerminalManager) commonService.uniqueResult("from InternationalTerminalManager where id='"+channelId+"'");
+			List<InternationalMerchantChannels> imc=this.commonService.list("from InternationalMerchantChannels mc where mc.merchantId='"+trade.getMerchantId()+"' and mc.channelId='"+tim.getChannelId()+"'");
+			if(imc!=null&&imc.size()>0){
+				InternationalMerchantChannels channel=imc.get(0);
+				logger.info("*********更新通道使用费*************");
+				trade.setChannelFee(channel.getChannelFee());
+			}
+			msg.setMode("Api");
+			//msg.setVersion("20180208");
+			msg.setApplicationId(tim.getMerchantNo());
+			msg.setOrderId(trade.getOrderNo());
+			//msg.setSource(trade.getTradeUrl());
+			msg.setEmail(ic.getEmail());
+			msg.setIPAddress(ic.getIp().split(",")[0]);
+			msg.setCurrency("CNY");
+			Double amountAndFee=trade.getRmbAmount();
+			if(trade.getChannelFee()!=null){
+				amountAndFee=amountAndFee*(trade.getChannelFee()+1.0);
+				amountAndFee = (double) (Math.round((double) amountAndFee * 100) / 100.00);
+			}
+			msg.setAmount(amountAndFee+ "");			
+			MD5 md5=new MD5();
+			String md5Hash = msg.getApplicationId() + msg.getOrderId() + msg.getEmail() + msg.getCurrency() + msg.getAmount() + tim.getHashcode();
+			msg.setSignature(md5.getMD5ofStr(md5Hash));
+			
+			msg.setProductSku1("ProductSku1");
+			msg.setProductName1(ic.getProductInfo());	
+			msg.setProductPrice1(amountAndFee+ "");
+			msg.setProductQuantity1("1");
+			msg.setShippingFirstName(ic.getShippingFullName());
+			msg.setShippingLastName(ic.getLastName());
+			
+			if(ic.getShippingCountry().length()>=3){
+				msg.setShippingCountry(ic.getShippingCountry().substring(3, 5));
+			}else{
+				msg.setShippingCountry(ic.getShippingCountry());
+			}
+			
+			//msg.setShippingCountry(ic.getCountry());
+			
+			if(ic.getShippingState()!=null){
+				 msg.setShippingState(ic.getShippingState().trim());//美国加拿大州县转换
+			 }else{
+				 msg.setShippingState("state");
+			 }
 	
+			msg.setShippingCity(ic.getShippingCity());
+			msg.setShippingAddress1(ic.getShippingAddress());
+			msg.setShippingZipcode(ic.getShippingZip());
+			msg.setShippingTelephone(ic.getShippingPhone());
+			
+			msg.setBillingFirstName(ic.getFirstName());
+			msg.setBillingLastName(ic.getLastName());
+			
+			if(ic.getCountry().length()>=3){
+				msg.setBillingCountry(ic.getCountry().substring(3, 5).trim());
+			}else{
+				msg.setBillingCountry(ic.getCountry());
+			}
+			//msg.setBillingCountry(ic.getCountry());
+			
+
+			if(ic.getState()!=null){
+				 msg.setBillingState(ic.getState());//美国加拿大州县转换
+			 }else{
+				 msg.setBillingState("state");
+			 }
+			//msg.setBillingState(state);//要改
+			msg.setBillingCity(ic.getShippingCity());
+			msg.setBillingAddress1(ic.getShippingAddress());
+			msg.setBillingZipcode(ic.getShippingZip());
+			msg.setBillingTelephone(ic.getShippingPhone());
+
+			//都要改
+			
+			msg.setCreditCardName(ic.getFirstName()+ic.getLastName());
+			msg.setCreditCardNumber(cardNo);
+			msg.setCreditCardExpire("20"+tem.getExpirationYear()+tem.getExpirationMonth());
+			msg.setCreditCardCsc2(tem.getCvv2());
+			yu.get(msg);
+
+			logger.info("vip交易结果："+msg.getStatus());
+			String backSussess="";
+			String backMessage="";
+			if(msg.getStatus().equals("Success")){
+				trade.setTradeState("1"
+						+ trade.getTradeState().substring(1,
+								trade.getTradeState().length()));
+//				trade.setTradeState(StatusUtil.updateStatus(trade.getTradeState(), 15, "3"));
+//				trade.setRemark("Payment Declined!" + tm.getErrorCode());
+				trade.setVIPDisposePorson("System");
+				trade.setVIPDisposeDate(new Date());
+				trade.setVIPAuthorizationNo(msg.getTransactionId());
+				trade.setRemark("Payment Success!");
+				orderList=orderList+trade.getOrderNo()+"（Payment Success!）、";
+				backSussess="1";
+				backMessage=tim.getBillingAddress();
+				if(!"1001".equals((trade.getOrderNo()).substring(0,4))&&!"4136".equals((trade.getOrderNo()).substring(0,4))&&!"3918".equals((trade.getOrderNo()).substring(0,4))&&!"4110".equals((trade.getOrderNo()).substring(0,4))&&!"4212".equals((trade.getOrderNo()).substring(0,4))){
+					logger.info("*******发送成功邮件："+trade.getOrderNo());
+					EmailInfo emailinfo = new EmailInfo();
+					String mailinfo = emailinfo.getPaymentResultEmail(
+							ic.getEmail(),
+							trade.getTradeAmount(),
+							getStates().getCurrencyTypeByNo(
+									trade.getMoneyType().intValue()),
+							trade.getTradeUrl(), trade.getTradeTime(),
+							backMessage, trade.getMerchantOrderNo(),
+							trade.getOrderNo());
+					try {
+						CCSendMail.setSendMail(ic.getEmail(), mailinfo,
+								"sfepay@sfepay.com");
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}else if(msg.getStatus().equals("Pending")||msg.getStatus().equals("Processing")){
+				trade.setTradeState("2"
+						+ trade.getTradeState().substring(1,
+								trade.getTradeState().length()));
+				if(StringUtils.isNotBlank(msg.getTransactionId())){
+					trade.setVIPAuthorizationNo(msg.getTransactionId());
+				}
+				backSussess="6";				
+			}else{
+				orderList=orderList+trade.getOrderNo()+"("+msg.getReason()+")、";
+//				trade.setTradeState("0"
+//						+ trade.getTradeState().substring(1,
+//								trade.getTradeState().length()));
+				if(!"sfe01".equals(msg.getStatus())){
+					trade.setRemark("1093high risk!" +msg.getReason());
+				}
+				backSussess="0";
+				backMessage=trade.getRemark();
+			}
+	if(StringUtils.isNotBlank(msg.getStatus())&&!"sfe01".equals(msg.getStatus())){
+		List<InternationalMerchantChannels> merChannel=this.commonService.list("from InternationalMerchantChannels mc where mc.merchantId='"+trade.getMerchantId()+"' and mc.channelId='"+tim.getChannelId()+"'");
+		if(merChannel!=null&&merChannel.size()>0){
+			InternationalMerchantChannels mc=merChannel.get(0);
+			logger.info("*********更新通道*************");
+			trade.setTradeChannel(Long.valueOf(mc.getId()));
+		}
+		commonService.update(trade);
+		if("1".equals(backSussess)){
+			commonService.delete(tem);
+			if("1001".equals((trade.getOrderNo()).substring(0,4))||"4136".equals((trade.getOrderNo()).substring(0,4))){
+			TemporarySynThread ts=new TemporarySynThread("http://www.xingbill.com/synTradeInfo",trade.getMerchantOrderNo(), backSussess, backMessage);
+			ts.start();
+			}
+			if("3918".equals((trade.getOrderNo()).substring(0,4))||"4110".equals((trade.getOrderNo()).substring(0,4))){
+				TemporarySynThread ts=new TemporarySynThread("http://www.win4mall.com/OrderAutomatic",trade.getMerchantOrderNo(),backSussess, backMessage);
+				ts.start();
+			}
+			if("4160".equals((trade.getOrderNo()).substring(0,4))||"4161".equals((trade.getOrderNo()).substring(0,4))){
+				TemporarySynThread ts=new TemporarySynThread("http://www.ipasspay.biz/index.php/Thirdpay/Sfepay/notifyUrl",trade.getMerchantOrderNo(), backSussess, trade.getRemark());
+				ts.start();
+			}
+			if("4165".equals((trade.getOrderNo()).substring(0,4))){
+				TemporarySynThread ts=new TemporarySynThread("http://www.youkutuan.com/do.php?act=charge_okok",trade.getMerchantOrderNo(),backSussess,backMessage);
+				ts.start();
+			}
+			if("4169".equals((trade.getOrderNo()).substring(0,4))){
+				TemporarySynThread ts=new TemporarySynThread("http://www.jjqsc.com/PayResult.php",trade.getMerchantOrderNo(),backSussess, backMessage);
+				ts.start();
+			}
+			if("4066".equals((trade.getOrderNo()).substring(0,4))||"4216".equals((trade.getOrderNo()).substring(0,4))){
+				if("maxmaillots.org".equals(trade.getTradeUrl())){
+					TemporarySynThread ts=new TemporarySynThread("http://www.maxmaillots.org/payment_online_feback.php",trade.getMerchantOrderNo(),backSussess, backMessage);
+					ts.start();
+				}else{
+					TemporarySynThread ts=new TemporarySynThread("http://"+trade.getTradeUrl()+"/payment_online_feback.php",trade.getMerchantOrderNo(),backSussess, backMessage);
+					ts.start();
+				}
+			}
+		}else if("6".equals(backSussess)){
+			commonService.delete(tem);
+		}else{
+			logger.info("更新vip交易失败："+trade.getOrderNo());
+			tem.setRemark(msg.getReason());
+			tem.setStatus("2");
+			commonService.update(tem);
+		}
+		}
 		}else if("GQ".equals(channelName)){
 			logger.info("进入GofPay通道");
 			GQPayMessage msg=new GQPayMessage();
@@ -1794,12 +2014,12 @@ public class TemporaryTradInfoAction extends BaseAction {
 			msg.setShippingLastName(ic.getLastName());
 			msg.setShippingCountry(ic.getCountry());
 			
-			String state=ic.getShippingState();
-			if(StringUtils.isBlank(state)){
-				state="state";
+			String shippingstate=ic.getShippingState();
+			if(StringUtils.isBlank(ic.getShippingState())){
+				shippingstate="state";
 			}
 			
-			msg.setShippingState(state);//要改
+			msg.setShippingState(shippingstate);//要改
 			msg.setShippingCity(ic.getShippingCity());
 			msg.setShippingAddress1(ic.getShippingAddress());
 			msg.setShippingZipcode(ic.getShippingZip());
@@ -1809,8 +2029,10 @@ public class TemporaryTradInfoAction extends BaseAction {
 			msg.setBillingLastName(ic.getLastName());
 			msg.setBillingCountry(ic.getCountry());
 			
-
-			
+			String state=ic.getState();
+			if(StringUtils.isBlank(ic.getState())){
+				state="state";
+			}			
 			msg.setBillingState(state);//要改
 			msg.setBillingCity(ic.getShippingCity());
 			msg.setBillingAddress1(ic.getShippingAddress());
@@ -1949,6 +2171,13 @@ public class TemporaryTradInfoAction extends BaseAction {
 				channelId="295";
 			}
 			InternationalTerminalManager tim=(InternationalTerminalManager) commonService.uniqueResult("from InternationalTerminalManager where id='"+channelId+"'");
+			
+			List<InternationalMerchantChannels> imc=this.commonService.list("from InternationalMerchantChannels mc where mc.merchantId='"+trade.getMerchantId()+"' and mc.channelId='"+tim.getChannelId()+"'");
+			if(imc!=null&&imc.size()>0){
+				InternationalMerchantChannels channel=imc.get(0);
+				logger.info("*********更新通道使用费*************");
+				trade.setChannelFee(channel.getChannelFee());
+			}
 			
 			BASE64Encoder baseE=new BASE64Encoder(); 
 			msg.setCardnum(baseE.encode(cardNo.getBytes()));
@@ -2272,10 +2501,23 @@ public class TemporaryTradInfoAction extends BaseAction {
 		}
 		}else if("PC".equals(channelName)){
 			 logger.info("进入PayClub通道");
-			 PayClubMessage msg=new PayClubMessage();
+			 	PayClubMessage msg=new PayClubMessage();
 				PayClubUtil yu=new PayClubUtil();
-				msg.setP_mid("81129");
-				msg.setP_account_num("40000310");
+				String channelId="";				
+				if("5".equals(cardNo.substring(0, 1))){
+					channelId="306";
+				}
+				InternationalTerminalManager tim=(InternationalTerminalManager) commonService.uniqueResult("from InternationalTerminalManager where id='"+channelId+"'");
+				
+				List<InternationalMerchantChannels> imc=this.commonService.list("from InternationalMerchantChannels mc where mc.merchantId='"+trade.getMerchantId()+"' and mc.channelId='"+tim.getChannelId()+"'");
+				if(imc!=null&&imc.size()>0){
+					InternationalMerchantChannels channel=imc.get(0);
+					logger.info("*********更新通道使用费*************");
+					trade.setChannelFee(channel.getChannelFee());
+				}
+				
+				msg.setP_mid(tim.getMerchantNo());
+				msg.setP_account_num(tim.getTerminalNo());
 				msg.setP_transaction_type("SALE");
 				msg.setP_order_num(trade.getOrderNo());
 				msg.setP_currency("CNY");
@@ -2305,7 +2547,7 @@ public class TemporaryTradInfoAction extends BaseAction {
 				msg.setP_ship_firstname(ic.getFirstName());
 				msg.setP_ship_lastname(ic.getLastName());
 				msg.setP_ship_country(ic.getShippingCountry());
-				msg.setP_ship_state(ic.getShippingState());
+				msg.setP_ship_state(ic.getShippingState().trim());
 				msg.setP_ship_city(ic.getShippingCity());
 				msg.setP_ship_address(ic.getShippingAddress());
 				msg.setP_ship_zip(ic.getShippingZip());
@@ -2313,17 +2555,11 @@ public class TemporaryTradInfoAction extends BaseAction {
 				msg.setP_product_num("1");
 				msg.setP_product_desc(ic.getProductInfo());
 
-				String sign=msg.getP_mid().trim()+msg.getP_account_num().trim()+msg.getP_order_num().trim()+msg.getP_currency().trim()+msg.getP_amount().trim()+"R2066dBx40lbbzj";
+				String sign=msg.getP_mid().trim()+msg.getP_account_num().trim()+msg.getP_order_num().trim()+msg.getP_currency().trim()+msg.getP_amount().trim()+tim.getHashcode();
 				String strDes = getSha256(sign); 
 				msg.setP_signmsg(strDes.toUpperCase());
 				
 				yu.get(msg);
-			
-				String channelId="";				
-				if("5".equals(cardNo.substring(0, 1))){
-					channelId="306";
-				}
-			InternationalTerminalManager tim=(InternationalTerminalManager) commonService.uniqueResult("from InternationalTerminalManager where id='"+channelId+"'");
 			
 			logger.info("vip交易结果："+msg.getP_pay_result());
 			String backSussess="";
@@ -2340,7 +2576,7 @@ public class TemporaryTradInfoAction extends BaseAction {
 				trade.setRemark("Payment Success!");
 				orderList=orderList+trade.getOrderNo()+"（Payment Success!）、";
 				backSussess="1";
-				backMessage="XIAOYZONER";
+				backMessage=tim.getBillingAddress();
 				if(!"1001".equals((trade.getOrderNo()).substring(0,4))&&!"4136".equals((trade.getOrderNo()).substring(0,4))&&!"3918".equals((trade.getOrderNo()).substring(0,4))&&!"4110".equals((trade.getOrderNo()).substring(0,4))&&!"4212".equals((trade.getOrderNo()).substring(0,4))){
 					logger.info("*******发送成功邮件："+trade.getOrderNo());
 					EmailInfo emailinfo = new EmailInfo();
@@ -2432,7 +2668,25 @@ public class TemporaryTradInfoAction extends BaseAction {
 			 MasaPayMessage masaM=new MasaPayMessage();
 			 MasaPayUtil masaU=new MasaPayUtil();
 			 masaM.setVersion("1.6");
-			 masaM.setMerchantId("801128553113051");
+			 String channelId="";
+				if("4".equals(cardNo.substring(0, 1))){
+					masaM.setOrgCode("VISA");
+					channelId="288";
+				}
+				if("5".equals(cardNo.substring(0, 1))){
+					masaM.setOrgCode("MASTER");
+					channelId="289";
+				}
+			InternationalTerminalManager tim=(InternationalTerminalManager) commonService.uniqueResult("from InternationalTerminalManager where id='"+channelId+"'");
+			
+			List<InternationalMerchantChannels> imc=this.commonService.list("from InternationalMerchantChannels mc where mc.merchantId='"+trade.getMerchantId()+"' and mc.channelId='"+tim.getChannelId()+"'");
+			if(imc!=null&&imc.size()>0){
+				InternationalMerchantChannels channel=imc.get(0);
+				logger.info("*********更新通道使用费*************");
+				trade.setChannelFee(channel.getChannelFee());
+			}
+			
+			 masaM.setMerchantId(tim.getMerchantNo());
 			 masaM.setCharset("utf-8");
 			 masaM.setLanguage("en");
 			 masaM.setSignType("SHA256");
@@ -2454,16 +2708,7 @@ public class TemporaryTradInfoAction extends BaseAction {
 			 masaM.setExpiryTime(sdf.format(msCalendar.getTime()));
 			 masaM.setBgUrl("https://www.sfepay.com/masapay");
 			 masaM.setPayMode("10");
-			 String channelId="";
-				if("4".equals(cardNo.substring(0, 1))){
-					masaM.setOrgCode("VISA");
-					channelId="288";
-				}
-				if("5".equals(cardNo.substring(0, 1))){
-					masaM.setOrgCode("MASTER");
-					channelId="289";
-				}
-			InternationalTerminalManager tim=(InternationalTerminalManager) commonService.uniqueResult("from InternationalTerminalManager where id='"+channelId+"'");
+			 
 			BASE64Encoder baseE=new BASE64Encoder();
 			 masaM.setCardNumber(cardNo);
 			 masaM.setCardHolderLastName(ic.getLastName());
@@ -2478,7 +2723,13 @@ public class TemporaryTradInfoAction extends BaseAction {
 			 masaM.setBillAddress(ic.getAddress());
 			 masaM.setBillPostalCode(ic.getZipcode());
 			 masaM.setBillCountry(ic.getCountry());
-			 masaM.setBillState(ic.getState());//美国加拿大州县转换
+			 
+			 if(ic.getState()!=null){
+				 masaM.setBillState(ic.getState().trim());//美国加拿大州县转换
+			 }else{
+				 masaM.setBillState("state");
+			 }
+			 
 			 masaM.setBillCity(ic.getCity());
 			 masaM.setBillEmail(ic.getEmail());
 			 masaM.setBillPhoneNumber(ic.getPhone());
@@ -2486,7 +2737,13 @@ public class TemporaryTradInfoAction extends BaseAction {
 			 masaM.setShippingAddress(ic.getShippingAddress());
 			 masaM.setShippingPostalCode(ic.getShippingZip());
 			 masaM.setShippingCountry(ic.getShippingCountry());
-			 masaM.setShippingState(ic.getShippingState());//美国加拿大州县转换
+			
+			 if(ic.getShippingState()!=null){
+				 masaM.setShippingState(ic.getShippingState().trim());//美国加拿大州县转换
+			 }else{
+				 masaM.setShippingState("state");
+			 }
+	 
 			 masaM.setShippingCity(ic.getShippingCity());
 			 masaM.setShippingEmail(ic.getShippingEmail());
 			 masaM.setShippingPhoneNumber(ic.getShippingPhone());
@@ -2497,7 +2754,7 @@ public class TemporaryTradInfoAction extends BaseAction {
 			 masaM.setRegisterTerminal("00");
 			 masaM.setOrderIp(ic.getIp().split(",")[0]);
 			 masaM.setOrderTerminal("00");
-			 masaM.setMd5key("K_iTBOu~");
+			 masaM.setMd5key(tim.getHashcode());
 			 masaU.get(masaM);
 
 			logger.info("vip交易结果："+masaM.getRes_resultCode());
@@ -2515,7 +2772,7 @@ public class TemporaryTradInfoAction extends BaseAction {
 				trade.setRemark("Payment Success!");
 				orderList=orderList+trade.getOrderNo()+"（Payment Success!）、";
 				backSussess="1";
-				backMessage="99BILL*YiYUN";
+				backMessage=tim.getBillingAddress();
 				if(!"1001".equals((trade.getOrderNo()).substring(0,4))&&!"4136".equals((trade.getOrderNo()).substring(0,4))&&!"3918".equals((trade.getOrderNo()).substring(0,4))&&!"4110".equals((trade.getOrderNo()).substring(0,4))&&!"4212".equals((trade.getOrderNo()).substring(0,4))){
 					logger.info("*******发送成功邮件："+trade.getOrderNo());
 					EmailInfo emailinfo = new EmailInfo();
@@ -2539,6 +2796,9 @@ public class TemporaryTradInfoAction extends BaseAction {
 				trade.setTradeState("2"
 						+ trade.getTradeState().substring(1,
 								trade.getTradeState().length()));
+				if(StringUtils.isNotBlank(masaM.getRes_masapayOrderNo())){
+					trade.setVIPAuthorizationNo(masaM.getRes_masapayOrderNo());
+				}
 				trade.setRemark("Payment Pending!");
 				backSussess="6";
 			}else{
@@ -2627,6 +2887,14 @@ public class TemporaryTradInfoAction extends BaseAction {
 			channelId="277";
 		}
 		InternationalTerminalManager tim=(InternationalTerminalManager) commonService.uniqueResult("from InternationalTerminalManager where id='"+channelId+"'");
+		
+		List<InternationalMerchantChannels> imc=this.commonService.list("from InternationalMerchantChannels mc where mc.merchantId='"+trade.getMerchantId()+"' and mc.channelId='"+tim.getChannelId()+"'");
+		if(imc!=null&&imc.size()>0){
+			InternationalMerchantChannels channel=imc.get(0);
+			logger.info("*********更新通道使用费*************");
+			trade.setChannelFee(channel.getChannelFee());
+		}
+		
 		yp.setMerId(tim.getMerchantNo());
 		yp.setB2mOrder(trade.getOrderNo());
 		yp.setCardNo(cardNo);
@@ -2768,8 +3036,31 @@ public class TemporaryTradInfoAction extends BaseAction {
 	 	wrp.setCharacterSet("UTF8");
 	 	wrp.setMerNo("1000041");
 	 	wrp.setTerNo("88816");
-		wrp.setAmount(trade.getTradeAmount()+"");
-		if(trade.getMoneyType()==1){
+	 	
+		String channelId="";
+		if("4".equals(cardNo.substring(0, 1))){				
+			channelId="293";
+		}
+		if("5".equals(cardNo.substring(0, 1))){				
+			channelId="294";
+		}
+		InternationalTerminalManager tim=(InternationalTerminalManager) commonService.uniqueResult("from InternationalTerminalManager where id='"+channelId+"'");
+	 		 	
+	 	List<InternationalMerchantChannels> imc=this.commonService.list("from InternationalMerchantChannels mc where mc.merchantId='"+trade.getMerchantId()+"' and mc.channelId='"+tim.getChannelId()+"'");
+		if(imc!=null&&imc.size()>0){
+			InternationalMerchantChannels channel=imc.get(0);
+			logger.info("*********更新通道使用费*************");
+			trade.setChannelFee(channel.getChannelFee());
+		}
+	 		 	
+	 	Double amountAndFee=trade.getRmbAmount();
+		if(trade.getChannelFee()!=null){
+			amountAndFee=amountAndFee*(trade.getChannelFee()+1.0);
+			amountAndFee = (double) (Math.round((double) amountAndFee * 100) / 100.00);
+		}
+	 	
+		wrp.setAmount(amountAndFee+"");
+		/*if(trade.getMoneyType()==1){
 			wrp.setCurrencyCode("USD");
 		}else if (trade.getMoneyType()==2) {
 			wrp.setCurrencyCode("EUR");
@@ -2783,7 +3074,9 @@ public class TemporaryTradInfoAction extends BaseAction {
 			wrp.setCurrencyCode("AUD");
 		}else if (trade.getMoneyType()==11) {
 			wrp.setCurrencyCode("CAD");
-		}
+		}*/
+		wrp.setCurrencyCode("CNY");
+		
 		wrp.setOrderNo(trade.getOrderNo());
 		wrp.setGoodsString(ic.getProductInfo());
 		wrp.setCardCountry(ic.getCountry());
@@ -2815,14 +3108,7 @@ public class TemporaryTradInfoAction extends BaseAction {
 		wrp.setLanguage("en");
 	 	wrp.setMerremark("");
 	 	wu.get(wrp);			
-		String channelId="";
-		if("4".equals(cardNo.substring(0, 1))){				
-			channelId="293";
-		}
-		if("5".equals(cardNo.substring(0, 1))){				
-			channelId="294";
-		}
-		InternationalTerminalManager tim=(InternationalTerminalManager) commonService.uniqueResult("from InternationalTerminalManager where id='"+channelId+"'");
+
 
 		logger.info("vip交易结果："+wrp.getRespCode());
 		String backSussess="";

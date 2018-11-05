@@ -363,7 +363,7 @@ public class MD5 {
            // System.out.println("MD5 Test suite:");
             //System.out.println("MD5(\"\"):" + m.getMD5ofStr("4521T1380.46enwww.sfepay.comu~h_rFJi"));
         	//String md5Hash = "4165" + "3142" + "1" + "63.00" + "EN" + "http://www.youkutuan.com/do.php?act=charge_ok"+ "LdUFmqeT";
-        	String md5Hash = "xingbill";
+        	String md5Hash = "3604" + "TEST1212122" + "1" + "80.46" + "EN" + "https://www.sfepay.com/payresult.jsp"+ "negyPVkv";
     		System.out.println( m.getMD5ofStr(md5Hash));   
 /*        	String md5Hash = "70227403" + "123456" + "index@gmail.com" + "CNY" + "80.46" + "VKf0MK02O8iYewkb";
     		System.out.println( m.getMD5ofStr("sfepay"));  */ 

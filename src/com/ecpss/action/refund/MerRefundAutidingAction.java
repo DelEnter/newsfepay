@@ -58,6 +58,7 @@ public class MerRefundAutidingAction extends BaseAction implements ServletReques
 	 */
 	public String toRefundAud(){
 		terminalNoList = this.refundService.getTerminalNoByRefund(2L);
+		merchantNo = 3809l;
 		StringBuffer sb = new StringBuffer();
 		sb.append("select rm,ti,c " +
 				"from InternationalRefundManager rm," +
@@ -81,6 +82,7 @@ public class MerRefundAutidingAction extends BaseAction implements ServletReques
 			sb.append(" and c.cardNo='"+cardNo+"' ");
 		}
 		sb.append(" order by ti.VIPTerminalNo desc,ti.tradeTime ");
+		info.setPageSize(500);
 		info = this.commonService.listQueryResultByHql(sb.toString(), info);
 		//auditingList = refundService.getAuditingRefund();
 		return SUCCESS;

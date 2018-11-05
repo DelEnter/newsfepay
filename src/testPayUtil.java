@@ -40,23 +40,25 @@ import vpn.WRPayMessage;
 
 public class testPayUtil {
 	Logger logger = Logger.getLogger(testPayUtil.class.getName());
-	private static String postUrl="http://localhost:8090/Gofpay";
+	private static String postUrl="https://www.sfepay.com/directPayment";
+	//private static String postUrl="http://localhost:8090/Gofpay";
 	//private static String postUrl="http://www.sfepay.com/listtrade";
 	//private static String postUrl="http://localhost:8090/listtrade";
 	public void get(WRPayMessage trade){
-	/* NameValuePair MerNo  =new BasicNameValuePair("MerNo","3604");
-	 NameValuePair newcardtype  = new BasicNameValuePair("newcardtype","4");
-	 NameValuePair cardnum  = new BasicNameValuePair("cardnum","WRD06gBioOKa/T3Mx0Hjzg==");
-	 NameValuePair cvv2  = new BasicNameValuePair("cvv2","fQapzxDy6eR+d9bGz6p/VA==");
-	 NameValuePair month  = new BasicNameValuePair("month","ZRK9Q9nKpuAsmQsKgmUtyg==");
-	 NameValuePair year  = new BasicNameValuePair("year","MSNRv/B5iXaQl2YKVjlQZQ==");
+		//MerNo +BillNo +Currency+Amount +Language+ReturnURL+MD5key
+	 NameValuePair MerNo  =new BasicNameValuePair("MerNo","3604");
+	 NameValuePair newcardtype  = new BasicNameValuePair("newcardtype","5");
+	 NameValuePair cardnum  = new BasicNameValuePair("cardnum","NDExMTExMTExMTExMTExMQ==");//NTExMTExMTExMTExMTExOA==  5111111111111111118  NDExMTExMTExMTExMTExMQ==  41111111111111111
+	 NameValuePair cvv2  = new BasicNameValuePair("cvv2","MTIz");
+	 NameValuePair month  = new BasicNameValuePair("month","MDY=");
+	 NameValuePair year  = new BasicNameValuePair("year","MjE=");
 	 NameValuePair cardbank  = new BasicNameValuePair("cardbank","cardbankbank");
-	 NameValuePair BillNo  = new BasicNameValuePair("BillNo","TEST12121442");
+	 NameValuePair BillNo  = new BasicNameValuePair("BillNo","TEST1212122");
 	 NameValuePair Amount  = new BasicNameValuePair("Amount","80.46");
 	 NameValuePair Currency  = new BasicNameValuePair("Currency","1");
 	 NameValuePair Language  = new BasicNameValuePair("Language","EN");
-	 NameValuePair MD5info  = new BasicNameValuePair("MD5info","UO2yOBy/2lcVRW4TFybHuQ==");
-	 NameValuePair ReturnURL  = new BasicNameValuePair("ReturnURL","www.baidu.com");
+	 NameValuePair MD5info  = new BasicNameValuePair("MD5info","3BD41D79C75BA5BDB903B2ADE12CAD58");
+	 NameValuePair ReturnURL  = new BasicNameValuePair("ReturnURL","https://www.sfepay.com/payresult.jsp");
 	 NameValuePair shippingFirstName  = new BasicNameValuePair("shippingFirstName","CCC");
 	 NameValuePair shippingLastName  = new BasicNameValuePair("shippingLastName","ZZZ");
 	 NameValuePair shippingEmail  = new BasicNameValuePair("shippingEmail","index@gmail.com");
@@ -64,7 +66,7 @@ public class testPayUtil {
 	 NameValuePair shippingZipcode  = new BasicNameValuePair("shippingZipcode","94000");
 	 NameValuePair shippingAddress  = new BasicNameValuePair("shippingAddress","newyork");
 	 NameValuePair shippingCity  = new BasicNameValuePair("shippingCity","newyork");
-	 NameValuePair shippingSstate  = new BasicNameValuePair("shippingSstate","newyork");
+	 NameValuePair shippingSstate  = new BasicNameValuePair("shippingSstate","AL");
 	 NameValuePair shippingCountry  = new BasicNameValuePair("shippingCountry","USAUS");
 	 NameValuePair products  = new BasicNameValuePair("products","nike max");
 	 NameValuePair firstname  = new BasicNameValuePair("firstname","CCC");
@@ -74,11 +76,11 @@ public class testPayUtil {
 	 NameValuePair zipcode  = new BasicNameValuePair("zipcode","94000");
 	 NameValuePair address  = new BasicNameValuePair("address","newyork");
 	 NameValuePair city  = new BasicNameValuePair("expMonth","12");
-	 NameValuePair state  = new BasicNameValuePair("state","newyork");
+	 NameValuePair state  = new BasicNameValuePair("state","AL");
 	 NameValuePair country  = new BasicNameValuePair("country","USAUS");
 	 NameValuePair addIp  = new BasicNameValuePair("addIp","172.58.15.24");
-	 NameValuePair sfeVersion  = new BasicNameValuePair("sfeVersion","ZKF1.1.1");*/
-		NameValuePair MerNo  =new BasicNameValuePair("merNo","4110");
+	 NameValuePair sfeVersion  = new BasicNameValuePair("sfeVersion","ZKF1.1.1");
+		/*NameValuePair MerNo  =new BasicNameValuePair("merNo","4110");
 		NameValuePair starttime  =new BasicNameValuePair("starttime","2018-01-24");
 		NameValuePair endtime  =new BasicNameValuePair("endtime","2018-01-25");//{"merNo":"3604","orders":[{"orderNo":"36041651","expressNo":"15615sdf","amount":"36.54"}]}
 		
@@ -89,7 +91,7 @@ public class testPayUtil {
 		List<NameValuePair> nvps2 = new ArrayList<NameValuePair>();
 		nvps2.add(MerNo);
 		nvps2.add(starttime);
-		nvps2.add(endtime);
+		nvps2.add(endtime);*/
 		
 		/*JSONObject json = new JSONObject();
 		
@@ -110,7 +112,7 @@ public class testPayUtil {
 		List<NameValuePair> nvps2 = new ArrayList<NameValuePair>();
 		nvps2.add(MerNo);*/
 		
-		/*List<NameValuePair> nvps1 = new ArrayList<NameValuePair>();
+		List<NameValuePair> nvps1 = new ArrayList<NameValuePair>();
 		nvps1.add(MerNo);
 		nvps1.add(newcardtype);
 		nvps1.add(cardnum);
@@ -175,7 +177,7 @@ public class testPayUtil {
 		nvps2.add(state);
 		nvps2.add(country);
 		nvps2.add(addIp);
-		nvps2.add(sfeVersion);	*/
+		nvps2.add(sfeVersion);	
 		try{
 			testPayUtil h = new testPayUtil();
 			logger.info("提交数据:"+nvps2.toString());
@@ -189,7 +191,7 @@ public class testPayUtil {
             trade.setAcquirer(map.get("acquirer")+"");
 		} catch (Exception e) {
 			logger.info("通道请求超时，3秒钟后重新发送。。。");
-			try{
+			/*try{
 				Thread.sleep(3*1000);
 				testPayUtil h = new testPayUtil();
 				logger.info("提交数据:"+nvps2.toString());
@@ -205,7 +207,7 @@ public class testPayUtil {
 				ex.printStackTrace();
 				trade.setRespCode("");
 				trade.setRespMsg("");
-			}
+			}*/
 			
 		}finally{
 			if(StringUtils.isBlank(String.valueOf(trade.getRespCode()))){

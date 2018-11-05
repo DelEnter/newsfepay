@@ -1503,7 +1503,173 @@ public class DirectCarderInfoAction1 extends BaseAction
 	        return SUCCESS;
 	      }
       }
+      if (("X").equals(chnals.substring(0, 1))) {
+          String[] re;
+          SfeUtil su = new SfeUtil();
+          SfeMessage sm = new SfeMessage();
+          sm.setMerNo("4136");
+          sm.setAmount(trade.getRmbAmount().toString());
+          sm.setCurrency("CNY");
+          String[] tradWeb = this.ReturnURL.split("/");
+          sm.setTradeAdd(tradWeb[2]);
+          sm.setTradetime(trade.getTradeTime());
+          sm.setReturnURL(this.ReturnURL);
+          sm.setCardNo(this.cardnum);
+          sm.setCvv2(this.cvv2);
+          sm.setYear(this.year);
+          sm.setMonth(this.month);
+          sm.setMerchantOrderNo(trade.getOrderNo());
+          sm.setMD5key(this.MD5key);
+          sm.setIp(this.ip);
+          sm.setCartype(this.newcardtype);
+//          if(card.getMaxmindValue()==null){
+//          	card.setMaxmindValue(0.0);
+//          }
+//          sm.setMaxmindRiskValue(card.getMaxmindValue().toString());
+          if(maxMindInfo!=null){
+  	        JSONObject jsMaxMind = JSONObject.fromObject(maxMindInfo);
+  	        sm.setMaxMindInfo(jsMaxMind.toString());
+          }
+          String Agent = "";
+          try {
+            Agent = request.getHeader("User-Agent");
+            StringTokenizer st = new StringTokenizer(Agent, ";");
+            st.nextToken();
 
+            this.userbrowser = st.nextToken();
+          } catch (Exception e) {
+            this.logger.error(e);
+            this.userbrowser = Agent;
+          }
+          if (StringUtils.isBlank(this.userbrowser))
+            this.userbrowser = "MSIE 10.0";
+
+          sm.setUserbrowser(this.userbrowser);
+          sm.setCookie(this.cookie);
+          sm.setFirstname(this.firstname);
+          sm.setLastname(this.lastname);
+          sm.setAddress(this.address);
+          sm.setCity(this.city);
+          sm.setState(this.state);
+          sm.setCountry(this.country);
+          sm.setZipcode(this.zipcode);
+          sm.setEmail(this.email);
+          sm.setPhone(this.phone);
+          sm.setShippingFirstName(this.shippingFirstName);
+          sm.setShippingLastName(this.shippingLastName);
+          sm.setShippingAddress(this.shippingAddress);
+          sm.setShippingCity(this.shippingCity);
+          sm.setShippingSstate(this.shippingSstate);
+          sm.setShippingCountry(this.shippingCountry);
+          sm.setShippingZipcode(this.shippingZipcode);
+          sm.setShippingEmail(this.shippingEmail);
+          sm.setShippingPhone(this.shippingPhone);
+          sm.setProducts(this.products);
+          sm.setCardBank(cardbank);
+          sm.setXingChanel(chnals);
+          su.paySfe(sm);
+          if ("88".equals(sm.getResponseCode()+""))
+          {
+            this.message = "Payment Success!";
+            this.responseCode = 88;
+            this.MD5info = trade.getMerchantOrderNo() + 
+              trade.getMoneyType() + ordercountValue + 
+              this.responseCode + this.MD5key;
+            this.md5Value = md5.getMD5ofStr(this.MD5info);
+            trade.setTradeState("1" + 
+              trade.getTradeState().substring(1, 
+              trade.getTradeState().length()));
+            trade.setRemark(this.message);
+            this.logger.info("交易成功返回:" + this.merchantOrderNo + "**" + this.tradeMoneyType + "**" + this.ordercount + "**" + this.responseCode + "**" + this.message + "**" + this.ReturnURL + "**" + this.md5Value);
+            this.commonService.update(trade);
+            if(!"1731".equals((trade.getOrderNo()).substring(0,4))){
+  	          EmailInfo emailinfo = new EmailInfo();
+  	          String mailinfo = emailinfo.getPaymentResultEmail(
+  	            card.getEmail(), 
+  	            trade.getTradeAmount(), 
+  	            getStates().getCurrencyTypeByNo(
+  	            trade.getMoneyType().intValue()), 
+  	            trade.getTradeUrl(), trade.getTradeTime(), 
+  	            sm.getBilladdress(), trade.getMerchantOrderNo(), 
+  	            trade.getOrderNo());
+  	          try
+  	          {
+  	            CCSendMail.setSendMail(card.getEmail(), mailinfo, 
+  	              "xingbill@xingbill.com");
+  	            this.logger.info("邮件立马发出");
+  	          }
+  	          catch (Exception e) {
+  	            this.shopManagerService.addSendMessages(card.getEmail(), 
+  	              "xingbill@xingbill.com", mailinfo, "0");
+  	            this.logger.info("邮件等待稍后发出");
+  	            this.logger.info("*********************支付结果返回码***************************" + this.responseCode);
+  	            return SUCCESS;
+  	          }
+            }
+            this.logger.info("*********************支付结果返回码***************************" + this.responseCode);
+            return "success"; }
+          if ("19".equals(sm.getResponseCode()+"")) {
+          	this.message = "Waiting processing!";
+  	        this.remark = "Waiting processing!";
+  	        this.responseCode = sm.getResponseCode();
+  	        this.MD5info = trade.getMerchantOrderNo() + 
+              trade.getMoneyType() + ordercountValue + 
+              this.responseCode + this.MD5key;
+  	        this.md5Value = md5.getMD5ofStr(this.MD5info);
+  	        trade.setTradeState("2" + 
+              trade.getTradeState().substring(1, 
+              trade.getTradeState().length()));
+  	        trade.setRemark(remark);
+            this.commonService.update(trade);
+            this.logger.info("*********************支付结果返回码***************************" + this.responseCode);
+            return SUCCESS;
+          }
+          if (("7".equals(sm.getResponseCode()+"")) || ("16".equals(sm.getResponseCode()+"")) || ("27".equals(sm.getResponseCode()+""))) {
+            this.message = "Payment Declined!";
+            this.remark = sm.getRemark();
+            this.responseCode = sm.getResponseCode();
+            trade.setTradeState("3" + 
+              trade.getTradeState().substring(1, 
+              trade.getTradeState().length()));
+            re = this.remark.split("/");
+            trade.setRemark(re[0]);
+            this.commonService.update(trade);
+            this.MD5info = trade.getMerchantOrderNo() + 
+              trade.getMoneyType() + ordercountValue + 
+              this.responseCode + this.MD5key;
+            this.md5Value = md5.getMD5ofStr(this.MD5info);
+            this.logger.info("*********************支付结果返回码***************************" + this.responseCode);
+            return SUCCESS;
+          }else{
+  	        this.message = "Payment Declined!";
+  	        this.remark = sm.getRemark();
+  	        if (("sfe01".equals(this.remark)) || ("03".equals(this.remark))) {
+  	          this.logger.info("写入重跑数据！" + this.remark);
+  	          trade.setRemark("请求银行超时！");
+  	          shopManagerService.addTemporaryTradInfo(rorderno, year, month,cvv2,country,MD5key, ip,userbrowser,"超时");
+  	        } else if ("sfe02".equals(this.remark)) {
+  	          this.logger.info("写入重跑数据！");
+  	          trade.setRemark("请求超时！");
+  	          shopManagerService.addTemporaryTradInfo(rorderno, year, month,cvv2,country,MD5key, ip,userbrowser,"超时");
+  	        } else {
+  	          re = this.remark.split("/");
+  	          trade.setRemark(re[0]);
+  	        }
+  	        this.responseCode = sm.getResponseCode();
+  	        trade.setTradeState("0" + 
+  	          trade.getTradeState().substring(1, 
+  	          trade.getTradeState().length()));
+  	        trade.setVIPDisposePorson("System");
+  	        trade.setVIPDisposeDate(new Date());
+  	        this.commonService.update(trade);
+  	        this.MD5info = trade.getMerchantOrderNo() + 
+  	          trade.getMoneyType() + ordercountValue + 
+  	          this.responseCode + this.MD5key;
+  	        this.md5Value = md5.getMD5ofStr(this.MD5info);
+  	        this.logger.info("*********************支付结果返回码***************************" + this.responseCode);
+  	        return SUCCESS;
+  	      }
+        }
       if (chnals.equals("V5")) {
 
 			TradUtil tu= new TradUtil();
