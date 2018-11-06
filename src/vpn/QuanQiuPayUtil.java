@@ -43,7 +43,7 @@ public class QuanQiuPayUtil {
 	 NameValuePair ApplicationId  = new BasicNameValuePair("ApplicationId",trade.getApplicationId());
 	 //NameValuePair AppId  = new BasicNameValuePair("AppId",trade.getAppId());
 	 NameValuePair OrderId  = new BasicNameValuePair("OrderId",trade.getOrderId());
-	 ///NameValuePair Source  = new BasicNameValuePair("Source",trade.getSource());
+	 NameValuePair Source  = new BasicNameValuePair("Source",trade.getSource());
 	 NameValuePair Email  = new BasicNameValuePair("Email",trade.getEmail());
 	 NameValuePair IPAddress  = new BasicNameValuePair("IPAddress",trade.getIPAddress());
 	 NameValuePair Currency  = new BasicNameValuePair("Currency",trade.getCurrency());
@@ -80,7 +80,7 @@ public class QuanQiuPayUtil {
 		//nvps1.add(AppId);//70227403
 		nvps1.add(ApplicationId);
 		nvps1.add(OrderId);
-		//nvps1.add(Source);
+		nvps1.add(Source);
 		nvps1.add(Email);
 		nvps1.add(IPAddress);
 		nvps1.add(Currency);
@@ -118,7 +118,7 @@ public class QuanQiuPayUtil {
 		nvps1.add(ApplicationId);
 		//nvps2.add(AppId);//70227403
 		nvps2.add(OrderId);
-		//nvps2.add(Source);
+		nvps2.add(Source);
 		nvps2.add(Email);
 		nvps2.add(IPAddress);
 		nvps2.add(Currency);

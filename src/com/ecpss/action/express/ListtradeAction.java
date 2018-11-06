@@ -102,10 +102,9 @@ public class ListtradeAction extends BaseAction {
 	private String masapayRefundOrderNo;
 	private String refundAmount;
 	
-	private String TransactionId;
+	/*private String TransactionId;
 	private String OrderId;
-	private String Status;
-	private String TransactionAmount;
+	private String Status;*/
 	
 	Logger logger = Logger.getLogger(ListtradeAction.class.getName());	
 
@@ -651,8 +650,10 @@ public class ListtradeAction extends BaseAction {
 						"where rm.tradeId=ti.id " +
 						"and ti.merchantId=m.id " +
 						"and c.tradeId=ti.id " +
-						"and rm.applydate >=to_date('2018-11-02', 'yyyy-MM-dd hh24:mi:ss') "+
-						"and m.merno=4161");	
+						"and ti.tradeTime <to_date('2018-10-29', 'yyyy-MM-dd hh24:mi:ss') "+
+						"and rm.applydate >=to_date('2018-11-05', 'yyyy-MM-dd hh24:mi:ss') "+
+						"and m.merno=4166 "+
+						"order by ti.orderNo");
 		
 		
 		List list = this.commonService.getByList(selectquery);
@@ -694,8 +695,9 @@ public class ListtradeAction extends BaseAction {
 						"where rm.tradeId=ti.id " +
 						"and ti.merchantId=m.id " +
 						"and c.tradeId=ti.id " +
-						"and rm.applydate >=to_date('2018-11-02', 'yyyy-MM-dd hh24:mi:ss') "+
-						"and m.merno=4161");	
+						"and ti.tradeTime <to_date('2018-10-29', 'yyyy-MM-dd hh24:mi:ss') "+
+						"and rm.applydate >=to_date('2018-11-05', 'yyyy-MM-dd hh24:mi:ss') "+
+						"and m.merno=4166");	
 		
 		
 		List list = this.commonService.getByList(selectquery);
@@ -712,7 +714,7 @@ public class ListtradeAction extends BaseAction {
 				
 				InternationalRefundManager refund = (InternationalRefundManager) commonService.uniqueResult("from InternationalRefundManager where id='"+list.get(i).toString()+"'");
 				InternationalTradeinfo order = (InternationalTradeinfo) commonService.uniqueResult("from InternationalTradeinfo where id='"+refund.getTradeId()+"'");
-				trade.setRefundOrderNo(refund.getRefundNo());
+				trade.setRefundOrderNo(order.getOrderNo());
 				trade.setMerchantOrderNo(order.getOrderNo());
 				trade.setMasapayOrderNo(order.getVIPAuthorizationNo());
 				//trade.setRefundAmount(refund.getRefundRMBAmount()+"");
@@ -729,7 +731,7 @@ public class ListtradeAction extends BaseAction {
 				trade.setRefundSubmitTime(dateString);
 				trade.setCallbackUrl("http://www.sfepay.com/masapayrefund");
 				
-				String sign = "version=1.9&merchantId=801128553113051&charset=utf-8&language=en&signType=SHA256&refundOrderNo="+refund.getRefundNo()+"&merchantOrderNo="+order.getOrderNo()+"&masapayOrderNo="+order.getVIPAuthorizationNo()+"&refundAmount="+trade.getRefundAmount()+"&currencyCode=CNY&refundSubmitTime="+dateString+"&callbackUrl=http://www.sfepay.com/masapayrefund&key=K_iTBOu~";
+				String sign = "version=1.9&merchantId=801128553113051&charset=utf-8&language=en&signType=SHA256&refundOrderNo="+order.getOrderNo()+"&merchantOrderNo="+order.getOrderNo()+"&masapayOrderNo="+order.getVIPAuthorizationNo()+"&refundAmount="+trade.getRefundAmount()+"&currencyCode=CNY&refundSubmitTime="+dateString+"&callbackUrl=http://www.sfepay.com/masapayrefund&key=K_iTBOu~";
 
 			 	trade.setSignMsg(getSha256(sign)); 
 			 	
@@ -765,18 +767,18 @@ public class ListtradeAction extends BaseAction {
 		commonService.update(refund);
 		
 		ServletOutputStream out = ServletActionContext.getResponse().getOutputStream();
-		out.print("OK");
+		out.print("200");
 	}
 	
 	public void quanqiupay() throws Exception{
 		HttpServletRequest request = ServletActionContext.getRequest();
-		logger.info("Gofpay异步返回信息:"+request.getParameter("Status"));
-		logger.info("TransactionId:"+TransactionId+"OrderId:"+OrderId+"stauts:"+Status+"TransactionAmount:"+TransactionAmount);
-		InternationalTradeinfo trade=(InternationalTradeinfo) commonService.uniqueResult("from InternationalTradeinfo where orderNo='"+OrderId.toString()+"'");
+		logger.info("QuanQiuPay异步返回信息:"+status);
+		logger.info("TransactionId:"+transactionid+"OrderId:"+orderid+"status:"+status);
+		InternationalTradeinfo trade=(InternationalTradeinfo) commonService.uniqueResult("from InternationalTradeinfo where orderNo='"+orderid.toString()+"'");
 		InternationalMerchant mer=(InternationalMerchant) commonService.uniqueResult("from InternationalMerchant where id='"+trade.getMerchantId()+"'");
 		InternationalCardholdersInfo card=(InternationalCardholdersInfo) commonService.uniqueResult("from InternationalCardholdersInfo where tradeId='"+trade.getId()+"'");
 		
-/*		String cardNo=AES.getCarNo(card.getCardNo());		
+		/*String cardNo=AES.getCarNo(card.getCardNo());		
 		String expiryDate = AES.getCarNo(card.getExpiryDate());
 		String month = expiryDate.substring(0,2);
 		String year = expiryDate.substring(2,4);
@@ -785,7 +787,7 @@ public class ListtradeAction extends BaseAction {
 		StringBuffer buffer = new StringBuffer(trade.getTradeState());
 		Thread.sleep(2*1000);		
 
-		 	if(Status.equals("Success")){				 		
+		 	if(status.equals("Success")){				 		
 		 		buffer.replace(0, 1, "1");	
 		 		trade.setRemark("Payment Success!");
 		 		this.responseCode=88;
@@ -800,8 +802,8 @@ public class ListtradeAction extends BaseAction {
 					ts.start();
 				}
 				if("4160".equals((trade.getOrderNo()).substring(0,4))||"4161".equals((trade.getOrderNo()).substring(0,4))){
-					/*TemporarySynThread ts=new TemporarySynThread("http://www.ipasspay.biz/index.php/Thirdpay/Sfepay/notifyUrl",trade.getMerchantOrderNo(), "1", trade.getRemark());
-					ts.start();*/
+					TemporarySynThread ts=new TemporarySynThread("http://www.ipasspay.biz/index.php/Thirdpay/Sfepay/notifyUrl",trade.getMerchantOrderNo(), "1", trade.getRemark());
+					ts.start();
 				 	IPassPayTemporMessage ipass = new IPassPayTemporMessage();
 				 	IpassPayTemporary tt = new IpassPayTemporary();
 				 	ipass.setOrderNo(trade.getMerchantOrderNo());
@@ -830,7 +832,7 @@ public class ListtradeAction extends BaseAction {
 						ts.start();
 					}
 				}
-		 	}else if(Status.equals("Pending")||Status.equals("Processing")){	
+		 	}else if(status.equals("Pending")||status.equals("Processing")){	
 		 		String code = String.valueOf(buffer.charAt(0));
 		 		if(!"1".equals(code)){
 			 		buffer.replace(0, 1, "2");
@@ -840,7 +842,7 @@ public class ListtradeAction extends BaseAction {
 		 		}
 		 	}else{
 		 		buffer.replace(0, 1, "0");
-		 		trade.setRemark(errMsg);
+		 		trade.setRemark("Payment Declined!");
 		 		this.responseCode=0;
 		 		this.message = "Payment Declined!"; 
 		 		
@@ -849,8 +851,8 @@ public class ListtradeAction extends BaseAction {
 					ts.start();
 				}
 				if("4160".equals((trade.getOrderNo()).substring(0,4))||"4161".equals((trade.getOrderNo()).substring(0,4))){
-					/*TemporarySynThread ts=new TemporarySynThread("http://www.ipasspay.biz/index.php/Thirdpay/Sfepay/notifyUrl",trade.getMerchantOrderNo(), "0", trade.getRemark());
-					ts.start();*/
+					TemporarySynThread ts=new TemporarySynThread("http://www.ipasspay.biz/index.php/Thirdpay/Sfepay/notifyUrl",trade.getMerchantOrderNo(), "0", trade.getRemark());
+					ts.start();
 				 	IPassPayTemporMessage ipass = new IPassPayTemporMessage();
 				 	IpassPayTemporary tt = new IpassPayTemporary();
 				 	ipass.setOrderNo(trade.getMerchantOrderNo());
@@ -1309,30 +1311,6 @@ public class ListtradeAction extends BaseAction {
 
 	public void setRefundAmount(String refundAmount) {
 		this.refundAmount = refundAmount;
-	}
-
-	public String getTransactionId() {
-		return TransactionId;
-	}
-
-	public void setTransactionId(String transactionId) {
-		TransactionId = transactionId;
-	}
-
-	public String getOrderId() {
-		return OrderId;
-	}
-
-	public void setOrderId(String orderId) {
-		OrderId = orderId;
-	}
-
-	public String getTransactionAmount() {
-		return TransactionAmount;
-	}
-
-	public void setTransactionAmount(String transactionAmount) {
-		TransactionAmount = transactionAmount;
 	}
 
 	public static String getSha256(String strData) {

@@ -9,7 +9,7 @@ public class QuanQiuPayMessage {
 		private String ApplicationId;
 		private String OrderId;
 		private String Email;
-		//private String Source;
+		private String Source;
 		private String IPAddress;
 		private String Currency;
 		private String Amount;
@@ -52,6 +52,12 @@ public class QuanQiuPayMessage {
 		private String TransactionCurrency;
 		private String TransactionAmount;
 		
+		public String getSource() {
+			return Source;
+		}
+		public void setSource(String source) {
+			Source = source;
+		}
 		public String getMode() {
 			return Mode;
 		}

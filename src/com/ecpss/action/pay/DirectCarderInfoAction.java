@@ -4260,7 +4260,7 @@ public class DirectCarderInfoAction extends BaseAction {
 			msg.setApplicationId(posMerchantNo);
 			//msg.setAppId("70227403");
 			msg.setOrderId(trade.getOrderNo());
-			//msg.setSource(trade.getTradeUrl());
+			msg.setSource(trade.getTradeUrl());
 			msg.setEmail(email);
 			msg.setIPAddress(ip.split(",")[0]);
 			msg.setCurrency("CNY");

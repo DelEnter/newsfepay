@@ -1813,7 +1813,7 @@ public class TemporaryTradInfoAction extends BaseAction {
 			//msg.setVersion("20180208");
 			msg.setApplicationId(tim.getMerchantNo());
 			msg.setOrderId(trade.getOrderNo());
-			//msg.setSource(trade.getTradeUrl());
+			msg.setSource(trade.getTradeUrl());
 			msg.setEmail(ic.getEmail());
 			msg.setIPAddress(ic.getIp().split(",")[0]);
 			msg.setCurrency("CNY");
@@ -1996,6 +1996,25 @@ public class TemporaryTradInfoAction extends BaseAction {
 			msg.setEmail(ic.getEmail());
 			msg.setIPAddress(ic.getIp().split(",")[0]);
 			msg.setCurrency("CNY");
+			String channelId="";
+			if("4".equals(cardNo.substring(0, 1))){			
+				channelId="298";
+			}
+			if("5".equals(cardNo.substring(0, 1))){				
+				channelId="297";
+			}
+			if("3".equals(cardNo.substring(0, 1))){				
+				channelId="299";
+			}
+			InternationalTerminalManager tim=(InternationalTerminalManager) commonService.uniqueResult("from InternationalTerminalManager where id='"+channelId+"'");
+			
+			List<InternationalMerchantChannels> imc=this.commonService.list("from InternationalMerchantChannels mc where mc.merchantId='"+trade.getMerchantId()+"' and mc.channelId='"+tim.getChannelId()+"'");
+			if(imc!=null&&imc.size()>0){
+				InternationalMerchantChannels channel=imc.get(0);
+				logger.info("*********更新通道使用费*************");
+				trade.setChannelFee(channel.getChannelFee());
+			}
+			
 			Double amountAndFee=trade.getRmbAmount();
 			if(trade.getChannelFee()!=null){
 				amountAndFee=amountAndFee*(trade.getChannelFee()+1.0);
@@ -2040,17 +2059,7 @@ public class TemporaryTradInfoAction extends BaseAction {
 			msg.setBillingTelephone(ic.getShippingPhone());
 
 			//都要改
-			String channelId="";
-			if("4".equals(cardNo.substring(0, 1))){			
-				channelId="298";
-			}
-			if("5".equals(cardNo.substring(0, 1))){				
-				channelId="297";
-			}
-			if("3".equals(cardNo.substring(0, 1))){				
-				channelId="299";
-			}
-			InternationalTerminalManager tim=(InternationalTerminalManager) commonService.uniqueResult("from InternationalTerminalManager where id='"+channelId+"'");
+			
 			msg.setCreditCardName(ic.getShippingFullName()+ic.getLastName());
 			msg.setCreditCardNumber(cardNo);
 			msg.setCreditCardExpire("20"+tem.getExpirationYear()+tem.getExpirationMonth());
@@ -3220,6 +3229,15 @@ public class TemporaryTradInfoAction extends BaseAction {
 					channelId="282";
 				}
 				InternationalTerminalManager tim=(InternationalTerminalManager) commonService.uniqueResult("from InternationalTerminalManager where id='"+channelId+"'");
+				
+				List<InternationalMerchantChannels> imc=this.commonService.list("from InternationalMerchantChannels mc where mc.merchantId='"+trade.getMerchantId()+"' and mc.channelId='"+tim.getChannelId()+"'");
+				if(imc!=null&&imc.size()>0){
+					InternationalMerchantChannels channel=imc.get(0);
+					logger.info("*********更新通道使用费*************");
+					trade.setChannelFee(channel.getChannelFee());
+				}
+				
+				
 				hrm.setMerNo(tim.getMerchantNo());
 				hrm.setTransType("sales");
 				Double amountAndFee=trade.getRmbAmount();
