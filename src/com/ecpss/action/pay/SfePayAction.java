@@ -789,7 +789,63 @@ public class SfePayAction extends BaseAction {
 				}
 			}
 		}
-
+		
+		int carno = 0;
+		carno = this.tradeManager
+				.intBySql("select count(1) from international_cardholdersinfo f, international_tradeinfo t where f.tradeid=t.id and f.cardno='"
+						+ cardNo
+						+ "' and t.merchantid='"
+						+ merchant.getId()
+						+ "' and substr(t.tradestate,1,1) in(1,2,4,5,6) and t.tradetime>to_date('"
+						+ yestedayDate + "','yyyy-MM-dd hh24:mi:ss')");
+		if (Long.valueOf(carno) >= localCarNO) {
+			message = "Payment Declined";
+			remark = "重复交易/Repeat business";
+			responseCode = 7;
+			logger.info("返回状态码+++++++++" + responseCode);
+			MD5info = tradeInfo.getMerchantOrderNo() + tradeInfo.getMoneyType()
+					+ ordercountValue + responseCode + MD5key;
+			md5Value = md5.getMD5ofStr(MD5info);
+			tradeInfo.setTradeState("3"
+					+ tradeInfo.getTradeState().substring(1,
+							tradeInfo.getTradeState().length()));
+			String re[]=remark.split("/");
+			tradeInfo.setRemark(re[0]);
+			this.commonService.update(tradeInfo);
+			logger.info("*********************支付结果返回码***************************"+responseCode);
+			return SUCCESS;
+		}
+		
+		// 同一邮箱
+					int emaillist = 0;
+					emaillist = this.tradeManager
+							.intBySql("select count(1) from international_cardholdersinfo f, international_tradeinfo t where f.tradeid=t.id and f.email='"
+									+ this.email
+									+ "' and t.merchantid='"
+									+ merchant.getId()
+									+ "' and substr(t.tradestate,1,1) in(1,2,4,5,6) and t.tradetime>to_date('"
+									+ yestedayDate + "','yyyy-MM-dd hh24:mi:ss')");
+//					List emailcount=this.commonService.list("select t from InternationalCardholdersInfo f,InternationalTradeinfo t where f.tradeId=t.id and f.email='"
+//							+ this.email+ "' and t.merchantId='"+ merchant.getId()+ "' and substring(t.tradeState,1,1) in(1,2,4,5,6) and t.tradeTime>to_date('"
+//							+ yestedayDate + "','yyyy-MM-dd hh24:mi:ss')");
+					if (Long.valueOf(emaillist) >= localEMAIL) {
+						message = "Payment Declined";
+						remark = "重复交易/Repeat business";
+						responseCode = 6;
+						logger.info("返回状态码+++++++++" + responseCode);
+						MD5info = tradeInfo.getMerchantOrderNo() + tradeInfo.getMoneyType()
+								+ ordercountValue + responseCode + MD5key;
+						md5Value = md5.getMD5ofStr(MD5info);
+						tradeInfo.setTradeState("3"
+								+ tradeInfo.getTradeState().substring(1,
+										tradeInfo.getTradeState().length()));
+						String re[]=remark.split("/");
+						tradeInfo.setRemark(re[0]);
+						this.commonService.update(tradeInfo);
+						logger.info("*********************支付结果返回码***************************"+responseCode);
+						return SUCCESS;
+					}		
+		
 		String posNumber = "";
 		String posMerchantNo = "";
 		String bankBackRemark="";
@@ -3762,6 +3818,7 @@ public class SfePayAction extends BaseAction {
 				if (msg.getOrder_status().equals("2")) {//交易成功
 					this.message = "Payment Success!";
 					this.responseCode = 88;
+	//				billaddress=hrm.getRes_acquirer();
 					tradeInfo.setTradeState("1"
 							+ tradeInfo.getTradeState().substring(1,
 									tradeInfo.getTradeState().length()));
@@ -3779,35 +3836,6 @@ public class SfePayAction extends BaseAction {
 					md5Value = md5.getMD5ofStr(MD5info);
 					
 					logger.info("交易成功返回:"+merchantOrderNo+"**"+Currency+"**"+ordercount+"**"+responseCode+"**"+message+"**"+ReturnURL+"**"+md5Value);
-					String mailinfo = null;
-					String Billaddress=msg.getBilling_desc();
-					if(!"4212".equals((tradeInfo.getOrderNo()).substring(0,4))){
-						try {
-							EmailInfo emailinfo = new EmailInfo();
-							mailinfo = emailinfo.getPaymentResultEmail(
-									card.getEmail(),
-									tradeInfo.getTradeAmount(),
-									getStates().getCurrencyTypeByNo(
-											tradeInfo.getMoneyType().intValue()),
-											tradeInfo.getTradeUrl(), tradeInfo.getTradeTime(),
-											Billaddress, tradeInfo.getMerchantOrderNo(),
-									tradeInfo.getOrderNo(), merchant);
-							// 发送邮件,如果发送失败插入数据库发送
-							if (merchant.getStatutes().substring(4, 5)
-									.equals("0")) {
-								CCSendMail.setSendMail(card.getEmail(),
-										mailinfo, "sfepay@sfepay.com");
-								logger.info("邮件立马发出");
-							}
-						} catch (Exception e) {
-							// 往数据库插入等待发送邮件
-							shopManagerService.addSendMessages(card.getEmail(),
-									"sfepay@sfepay.com", mailinfo, "0");
-							logger.info("邮件等待稍后发出");
-							logger.info("*********************支付结果返回码***************************"+responseCode);
-							return SUCCESS;
-						}
-					}
 					logger.info("*********************支付结果返回码***************************"+responseCode);
 					return SUCCESS;
 				}else if(msg.getOrder_status().equals("sfe01")){
@@ -3958,9 +3986,7 @@ public class SfePayAction extends BaseAction {
 						+ tradeInfo.getTradeState().substring(1,
 								tradeInfo.getTradeState().length()));
 				tradeInfo.setRemark("Waiting processing!");
-				if(StringUtils.isNotBlank(msg.getTransactionId())){
-					tradeInfo.setVIPAuthorizationNo(msg.getTransactionId());
-				}
+				tradeInfo.setVIPAuthorizationNo(msg.getTransactionId());
 				this.commonService.update(tradeInfo);
 				
 				logger.info("*********************支付结果返回码***************************"+responseCode);

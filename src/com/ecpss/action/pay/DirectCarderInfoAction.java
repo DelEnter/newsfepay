@@ -4364,6 +4364,7 @@ public class DirectCarderInfoAction extends BaseAction {
 						+ trade.getTradeState().substring(1,
 								trade.getTradeState().length()));
 				trade.setRemark("Waiting processing!");
+				trade.setVIPAuthorizationNo(msg.getTransactionId());
 				this.commonService.update(trade);
 				
 				logger.info("*********************支付结果返回码***************************"+responseCode);

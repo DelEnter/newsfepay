@@ -165,6 +165,7 @@ public class BailBalanceAction extends BaseAction {
 			}
 
 			temID = sbb.toString();
+			logger.info("**************temID**************"+temID.toString());
 			// 获取商户收款人信息
 			hql = "FROM InternationalMerchant mer WHERE mer.merno="
 					+ merchant.getMerno() + "";
@@ -174,8 +175,9 @@ public class BailBalanceAction extends BaseAction {
 					+ temID + ") group by trade.tradeChannel";
 			//hql = " select sum(trade.tradeAmount),sum(trade.backCount) ,trade.tradeChannel,trade.moneyType, count(trade.id)  FROM InternationalTradeinfo trade WHERE   trade.id in("
 			//		+ temID + ") group by trade.tradeChannel,trade.moneyType";
-
+			
 			List<Object[]> ol = commonService.list(hql);
+			logger.info("**************断点1**************");
 			for (Object[] o : ol) {
 				//logger.info("保证金循环："+(Long) o[3]);15
 				InternationalCreateBaihuakuanVo cbh = new InternationalCreateBaihuakuanVo();
@@ -187,6 +189,7 @@ public class BailBalanceAction extends BaseAction {
 				this.list.add(cbh);
 				this.totalMoney = this.totalMoney + cbh.getBalancemoney();
 			}
+			logger.info("**************断点2**************");
 			// InternationalCreateBaihuakuan cbh = new
 			// InternationalCreateBaihuakuan();
 			// Double partRundBail = (Double)o[2]*(Double)o[5];
@@ -211,6 +214,7 @@ public class BailBalanceAction extends BaseAction {
 			hql = "SELECT min(trade.tradeTime), max(trade.tradeTime)FROM InternationalTradeinfo trade WHERE trade.id in("
 					+ temID + ")";
 			o = (Object[]) commonService.uniqueResult(hql);
+			logger.info("**************断点3**************");
 			HttpServletRequest request = ServletActionContext.getRequest();
 			HttpSession session = request.getSession();
 			session.setAttribute("list", list);

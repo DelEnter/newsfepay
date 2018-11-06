@@ -785,11 +785,12 @@ public class ListtradeAction extends BaseAction {
 		String cvv = AES.getCarNo(card.getCvv2());*/
 							
 		StringBuffer buffer = new StringBuffer(trade.getTradeState());
-		Thread.sleep(2*1000);		
+		//Thread.sleep(5*1000);		
 
 		 	if(status.equals("Success")){				 		
 		 		buffer.replace(0, 1, "1");	
 		 		trade.setRemark("Payment Success!");
+		 		trade.setVIPAuthorizationNo(transactionid.toString());
 		 		this.responseCode=88;
 		 		/*MD5info = trade.getMerchantOrderNo()
 						+ trade.getMoneyType() + ordercountValue
@@ -833,19 +834,20 @@ public class ListtradeAction extends BaseAction {
 					}
 				}
 		 	}else if(status.equals("Pending")||status.equals("Processing")){	
-		 		String code = String.valueOf(buffer.charAt(0));
-		 		if(!"1".equals(code)){
+		 		//String code = String.valueOf(buffer.charAt(0));
+		 		trade.setVIPAuthorizationNo(transactionid.toString());
+		 		/*if(!"1".equals(code)){
 			 		buffer.replace(0, 1, "2");
 			 		trade.setRemark("Waiting processing*QP!");
 			 		this.responseCode=19;
 			 		this.message = "Waiting processing*QP!";	
-		 		}
-		 	}else{
+		 		}*/
+		 	}else if(status.equals("Failure")||status.equals("Error")||status.equals("Redirect")){
 		 		buffer.replace(0, 1, "0");
 		 		trade.setRemark("Payment Declined!");
 		 		this.responseCode=0;
 		 		this.message = "Payment Declined!"; 
-		 		
+		 		trade.setVIPAuthorizationNo(transactionid.toString());
 				if("1001".equals((trade.getOrderNo()).substring(0,4))||"4136".equals((trade.getOrderNo()).substring(0,4))){
 					TemporarySynThread ts=new TemporarySynThread("http://www.xingbill.com/synTradeInfo",trade.getMerchantOrderNo(), "0", message);
 					ts.start();
@@ -886,8 +888,10 @@ public class ListtradeAction extends BaseAction {
 		 trade.setTradeState(buffer.toString());
 		 commonService.update(trade);
 		 logger.info("**************Ö§¸¶·µ»ØÂë*************"+responseCode);
-		 ServletOutputStream out = ServletActionContext.getResponse().getOutputStream();
-		 out.print("OK");		 
+		 /*HttpServletResponse response =  ServletActionContext.getResponse();
+		 response.setStatus(200);
+		 ServletOutputStream out = response.getOutputStream();
+		 out.print("ok");*/		 
 	 }
 	
 	
