@@ -563,7 +563,7 @@ public class ListtradeAction extends BaseAction {
 				}
 				if("3918".equals((trade.getOrderNo()).substring(0,4))||"4110".equals((trade.getOrderNo()).substring(0,4))){
 					if("5872".equals(trade.getTradeChannel()+"")) {
-						TemporarySynThread ts = new TemporarySynThread("http://www.win4mall.com/OrderAutomatic", trade.getMerchantOrderNo(), "1", "99BILL*bisunhealth");
+						TemporarySynThread ts = new TemporarySynThread("http://www.win4mall.com/OrderAutomatic", trade.getMerchantOrderNo(), "1", "99BILL*osaleshop");
 						ts.start();
 					}else{
 						TemporarySynThread ts = new TemporarySynThread("http://www.win4mall.com/OrderAutomatic", trade.getMerchantOrderNo(), "1", "MAS*huashoulin.com");
@@ -650,9 +650,11 @@ public class ListtradeAction extends BaseAction {
 						"where rm.tradeId=ti.id " +
 						"and ti.merchantId=m.id " +
 						"and c.tradeId=ti.id " +
-						"and ti.tradeTime <to_date('2018-10-29', 'yyyy-MM-dd hh24:mi:ss') "+
-						"and rm.applydate >=to_date('2018-11-05', 'yyyy-MM-dd hh24:mi:ss') "+
+						/*"and ti.tradeTime <to_date('2018-10-01', 'yyyy-MM-dd hh24:mi:ss') "+*/
+						"and rm.refundstate = '2' "+
+						"and rm.applydate >=to_date('2018-11-15', 'yyyy-MM-dd hh24:mi:ss') "+
 						"and m.merno=4166 "+
+						"and ti.VIPAuthorizationNo is null "+
 						"order by ti.orderNo");
 		
 		
@@ -662,13 +664,13 @@ public class ListtradeAction extends BaseAction {
 		Msqueryorderutil tt = new Msqueryorderutil();
 
 	 	trade.setVersion("1.0");
-	 	trade.setMerchantId("801128553113051");
+	 	trade.setMerchantId("801128553113054");
 	 	trade.setCharset("utf-8");
 	 	trade.setLanguage("en");
 	 	trade.setSignType("SHA256");
 	 	trade.setQueryType("1");
 		for (int i = 0; i < list.size(); i++) {
-			 	String sign ="version=1.0&merchantId=801128553113051&charset=utf-8&language=en&signType=SHA256&queryType=1&merchantOrderNo="+list.get(i).toString()+"&key=K_iTBOu~";		 	
+			 	String sign ="version=1.0&merchantId=801128553113054&charset=utf-8&language=en&signType=SHA256&queryType=1&merchantOrderNo="+list.get(i).toString()+"&key=K_iTBOu~";		 	
 			 	trade.setSignMsg(getSha256(sign)); 
 			 	trade.setMerchantOrderNo(list.get(i).toString());
 			 	String res = tt.get(trade);	
@@ -695,8 +697,11 @@ public class ListtradeAction extends BaseAction {
 						"where rm.tradeId=ti.id " +
 						"and ti.merchantId=m.id " +
 						"and c.tradeId=ti.id " +
-						"and ti.tradeTime <to_date('2018-10-29', 'yyyy-MM-dd hh24:mi:ss') "+
-						"and rm.applydate >=to_date('2018-11-05', 'yyyy-MM-dd hh24:mi:ss') "+
+						"and ti.tradeTime <to_date('2018-11-07', 'yyyy-MM-dd hh24:mi:ss') "+
+						"and rm.refundstate = '2' "+
+						"and rm.applydate >=to_date('2018-11-15', 'yyyy-MM-dd hh24:mi:ss') "+
+						/*"and ti.VIPAuthorizationNo is not null "+*/
+						"and rm.remark != 'Success' "+
 						"and m.merno=4166");	
 		
 		
@@ -706,7 +711,7 @@ public class ListtradeAction extends BaseAction {
 		Msrefundorderutil tt = new Msrefundorderutil();
 
 	 	trade.setVersion("1.9");
-	 	trade.setMerchantId("801128553113051");
+	 	trade.setMerchantId("801128553113054");
 	 	trade.setCharset("utf-8");
 	 	trade.setLanguage("en");
 	 	trade.setSignType("SHA256");
@@ -719,10 +724,10 @@ public class ListtradeAction extends BaseAction {
 				trade.setMasapayOrderNo(order.getVIPAuthorizationNo());
 				//trade.setRefundAmount(refund.getRefundRMBAmount()+"");
 				Double amountAndFee=refund.getRefundRMBAmount();
-				/*if(refund.getRefundRMBAmount()!=null){
+				if(order.getChannelFee()!=null){
 					amountAndFee=amountAndFee*(order.getChannelFee()+1.0);
 					amountAndFee = (double) (Math.round((double) amountAndFee * 100) / 100.00);
-				 }*/
+				 }
 				trade.setRefundAmount((int)(amountAndFee*100)+"");
 				trade.setCurrencyCode("CNY");
 				Date currentTime = new Date();
@@ -731,7 +736,7 @@ public class ListtradeAction extends BaseAction {
 				trade.setRefundSubmitTime(dateString);
 				trade.setCallbackUrl("http://www.sfepay.com/masapayrefund");
 				
-				String sign = "version=1.9&merchantId=801128553113051&charset=utf-8&language=en&signType=SHA256&refundOrderNo="+order.getOrderNo()+"&merchantOrderNo="+order.getOrderNo()+"&masapayOrderNo="+order.getVIPAuthorizationNo()+"&refundAmount="+trade.getRefundAmount()+"&currencyCode=CNY&refundSubmitTime="+dateString+"&callbackUrl=http://www.sfepay.com/masapayrefund&key=K_iTBOu~";
+				String sign = "version=1.9&merchantId="+trade.getMerchantId()+"&charset=utf-8&language=en&signType=SHA256&refundOrderNo="+order.getOrderNo()+"&merchantOrderNo="+order.getOrderNo()+"&masapayOrderNo="+order.getVIPAuthorizationNo()+"&refundAmount="+trade.getRefundAmount()+"&currencyCode=CNY&refundSubmitTime="+dateString+"&callbackUrl=http://www.sfepay.com/masapayrefund&key=K_iTBOu~";
 
 			 	trade.setSignMsg(getSha256(sign)); 
 			 	
@@ -742,7 +747,7 @@ public class ListtradeAction extends BaseAction {
 			 	
 			 	//System.out.println(trade.getMerchantOrderNo());
 			 	if("10".equals(json.getString("resultCode"))){
-			 		refund.setRemark("Success!");
+			 		refund.setRemark("Success");
 			 	}else{
 			 		refund.setRemark(json.getString("errorMsg"));
 			 	}

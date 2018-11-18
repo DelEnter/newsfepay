@@ -1828,7 +1828,15 @@ public class TemporaryTradInfoAction extends BaseAction {
 			msg.setSignature(md5.getMD5ofStr(md5Hash));
 			
 			msg.setProductSku1("ProductSku1");
-			msg.setProductName1(ic.getProductInfo());	
+			//msg.setProductName1(ic.getProductInfo());	
+			
+			String pro=ic.getProductInfo();
+			if(pro.indexOf("#")>=0||pro.indexOf("&")>=0){
+				pro = pro.replace("#", " ");
+				pro = pro.replace("&", " ");
+			}
+			msg.setProductName1(pro);
+			
 			msg.setProductPrice1(amountAndFee+ "");
 			msg.setProductQuantity1("1");
 			msg.setShippingFirstName(ic.getShippingFullName());

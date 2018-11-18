@@ -66,6 +66,9 @@
 		<!-- masapay查询订单接口 -->
 		<action name="masapayquery" class="com.ecpss.action.express.ListtradeAction" method="masapayquery">
 		</action>
+		<!-- masapay查询订单接口 -->
+		<action name="masapayref" class="com.ecpss.action.express.ListtradeAction" method="masapayref">
+		</action>
 		
 		<!-- sfe开放接口-->
 		<action name="spay" class="com.ecpss.action.pay.SfePayAction" method="pay">

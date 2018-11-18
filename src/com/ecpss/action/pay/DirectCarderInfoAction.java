@@ -4274,7 +4274,14 @@ public class DirectCarderInfoAction extends BaseAction {
 			msg.setSignature(md5.getMD5ofStr(md5Hash));
 			
 			msg.setProductSku1("ProductSku1");
-			msg.setProductName1(products);	
+			////msg.setProductName1(products);	
+			String pro=products.toString();
+			if(pro.indexOf("#")>=0||pro.indexOf("&")>=0){
+				pro = pro.replace("#", " ");
+				pro = pro.replace("&", " ");
+			}
+			msg.setProductName1(pro);
+			
 			msg.setProductPrice1(amountAndFee+ "");
 			msg.setProductQuantity1("1");
 			msg.setShippingFirstName(shippingFirstName);
@@ -5721,7 +5728,7 @@ public class DirectCarderInfoAction extends BaseAction {
 		 masaM.setSignType("SHA256");
 		 masaM.setMerchantOrderNo(trade.getOrderNo());
 		 masaM.setGoodsName(card.getProductInfo());
-		 masaM.setGoodsDesc(card.getProductInfo());
+		 ///masaM.setGoodsDesc(card.getProductInfo());
 		 masaM.setOrderExchange("2");
 		 masaM.setCurrencyCode("CNY");
 		 Double amountAndFee=trade.getRmbAmount();
@@ -5730,6 +5737,7 @@ public class DirectCarderInfoAction extends BaseAction {
 			amountAndFee = (double) (Math.round((double) amountAndFee * 100) / 100.00);
 		 }
 		 masaM.setOrderAmount((int)(amountAndFee*100)+"");
+		 masaM.setGoodsDesc(card.getProductInfo() + " 1^newProduct 1^1 1^" + masaM.getOrderAmount() + " 1^" + trade.getTradeUrl());
 		 SimpleDateFormat sdf=new SimpleDateFormat("yyyyMMddHHmmss");
 		 Calendar msCalendar = Calendar.getInstance();
 		 msCalendar.add(Calendar.MINUTE,2); 

@@ -70,6 +70,7 @@ import com.ecpss.model.channel.InternationalMerchantChannels;
 import com.ecpss.model.payment.InternationalCardholdersInfo;
 import com.ecpss.model.payment.InternationalTradeinfo;
 import com.ecpss.model.risk.InternationalBackMaxMind;
+import com.ecpss.model.risk.InternationalBacklist;
 import com.ecpss.model.risk.InternationalHighRisklist;
 import com.ecpss.model.risk.InternationalRiskItems;
 import com.ecpss.model.risk.InternationalSensitiveInfo;
@@ -845,7 +846,95 @@ public class SfePayAction extends BaseAction {
 						logger.info("*********************支付结果返回码***************************"+responseCode);
 						return SUCCESS;
 					}		
-		
+					//3天之内前3笔都是失败的卡号
+					Calendar calendar2 = Calendar.getInstance();// 此时打印它获取的是系统当前时间
+					calendar2.add(Calendar.DATE, -3); // 得到前3天
+					String sanshiDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+							.format(calendar2.getTime());
+					int cardno30error = 0;
+					cardno30error = this.tradeManager
+							.intBySql("select count(*) from(select cardno,tradestate,tradetime from (select f.cardno,t.tradestate,t.tradetime "
+									+ "from international_cardholdersinfo f, international_tradeinfo t where f.tradeid=t.id "
+									+ "and f.cardno='"+AES.setCarNo(cardNo)+"' and t.merchantid='"+ merchant.getId()
+									+ "' and t.tradetime>to_date('"+sanshiDate+"','yyyy-MM-dd hh24:mi:ss') order by t.tradetime desc) "
+									+ "where rownum<=3) s where substr(s.tradestate,1,1)='0'");
+					if (Long.valueOf(cardno30error) >= 3) {
+						logger.info("连续失败的卡号："+cardNo);
+						message = "Payment Declined";
+						remark = "重复失败次数过多卡号/Repeated failure many times";
+						responseCode = 7;
+						logger.info("返回状态码+++++++++" + responseCode);
+						MD5info = tradeInfo.getMerchantOrderNo() + tradeInfo.getMoneyType()
+								+ ordercountValue + responseCode + MD5key;
+						md5Value = md5.getMD5ofStr(MD5info);
+						tradeInfo.setTradeState("3"
+								+ tradeInfo.getTradeState().substring(1,
+										tradeInfo.getTradeState().length()));
+						String re[]=remark.split("/");
+						tradeInfo.setRemark(re[0]);
+						this.commonService.update(tradeInfo);
+						InternationalBacklist back=new InternationalBacklist();
+						back.setCardno(cardNo);
+						this.commonService.save(back);
+						logger.info("*********************支付结果返回码***************************"+responseCode);
+						return SUCCESS;
+					}
+					int ip30error = 0;
+					ip30error = this.tradeManager
+							.intBySql("select count(*) from(select cardno,tradestate,tradetime from (select f.cardno,t.tradestate,t.tradetime "
+									+ "from international_cardholdersinfo f, international_tradeinfo t where f.tradeid=t.id "
+									+ "and f.ip='"+ip+"' and t.merchantid='"+ merchant.getId()
+									+ "' and t.tradetime>to_date('"+sanshiDate+"','yyyy-MM-dd hh24:mi:ss') order by t.tradetime desc) "
+									+ "where rownum<=3) s where substr(s.tradestate,1,1)='0'");
+					if (Long.valueOf(ip30error) >= 3) {
+						logger.info("连续失败的ip："+ip);
+						message = "Payment Declined";
+						remark = "重复失败次数过多Ip/Repeated failure many times";
+						responseCode = 7;
+						logger.info("返回状态码+++++++++" + responseCode);
+						MD5info = tradeInfo.getMerchantOrderNo() + tradeInfo.getMoneyType()
+								+ ordercountValue + responseCode + MD5key;
+						md5Value = md5.getMD5ofStr(MD5info);
+						tradeInfo.setTradeState("3"
+								+ tradeInfo.getTradeState().substring(1,
+										tradeInfo.getTradeState().length()));
+						String re[]=remark.split("/");
+						tradeInfo.setRemark(re[0]);
+						this.commonService.update(tradeInfo);
+						InternationalBacklist back=new InternationalBacklist();
+						back.setIp(ip);
+						this.commonService.save(back);
+						logger.info("*********************支付结果返回码***************************"+responseCode);
+						return SUCCESS;
+					}
+					int email30error = 0;
+					email30error = this.tradeManager
+							.intBySql("select count(*) from(select cardno,tradestate,tradetime from (select f.cardno,t.tradestate,t.tradetime "
+									+ "from international_cardholdersinfo f, international_tradeinfo t where f.tradeid=t.id "
+									+ "and f.email='"+email+"' and t.merchantid='"+ merchant.getId()
+									+ "' and t.tradetime>to_date('"+sanshiDate+"','yyyy-MM-dd hh24:mi:ss') order by t.tradetime desc) "
+									+ "where rownum<=3) s where substr(s.tradestate,1,1)='0'");
+					if (Long.valueOf(email30error) >= 3) {
+						logger.info("连续失败的email："+email);
+						message = "Payment Declined";
+						remark = "重复失败次数过多email/Repeated failure many times";
+						responseCode = 7;
+						logger.info("返回状态码+++++++++" + responseCode);
+						MD5info = tradeInfo.getMerchantOrderNo() + tradeInfo.getMoneyType()
+								+ ordercountValue + responseCode + MD5key;
+						md5Value = md5.getMD5ofStr(MD5info);
+						tradeInfo.setTradeState("3"
+								+ tradeInfo.getTradeState().substring(1,
+										tradeInfo.getTradeState().length()));
+						String re[]=remark.split("/");
+						tradeInfo.setRemark(re[0]);
+						this.commonService.update(tradeInfo);
+						InternationalBacklist back=new InternationalBacklist();
+						back.setEmail(email);
+						this.commonService.save(back);
+						logger.info("*********************支付结果返回码***************************"+responseCode);
+						return SUCCESS;
+					}		
 		String posNumber = "";
 		String posMerchantNo = "";
 		String bankBackRemark="";
@@ -1214,6 +1303,94 @@ public class SfePayAction extends BaseAction {
 				shopManagerService.addTemporaryTradInfo(orderno, year, month,cvv2,country,MD5key, ip,"MSIE 10.0","Payment Declined！08");
 				return SUCCESS;				
 			}*/
+			logger.info("****风控等级之外开始防风险验证********");
+			//在InternationalHighRisklist黑卡库里有过记录的，返回true（注意这个判断如果有记录，会去查查出来的数据的isQWeb是否为1，如果是1，属性isQweb赋值为1，还会判断数据库中isweb是否为1，为1则属性isweb赋值为1）
+			Boolean isVisaVal1=validateVisa(cardNo,email,ip,tradeInfo.getTradeUrl(),phone,zipcode);
+			String valCountry1="";
+			if(StringUtils.isNotBlank(bankCountry)){
+				valCountry1=bankCountry;
+			}else{
+				valCountry1=country.substring(3, 5);
+			}
+			if(isVisaVal1.equals(Boolean.TRUE)){
+				//验证1国家  、2地区、3网站是否在这张表里并需要人工处理，在表里返回true
+				Boolean isCountryVal1=validateRiskItems(valCountry1, "1");
+				InternationalHighRisklist r2=new InternationalHighRisklist();
+				//注意这查询和validateVisa不一样的地方虽然都是查同一张表，但是上面那个还有网址、电话和邮编）
+				List<InternationalHighRisklist> lrl1=commonService.list("from InternationalHighRisklist where cardno='"+cardNo+"' or email='"+email+"' or ip='"+ip+"'");
+				Boolean c1=false;
+				Boolean e1=false;
+				Boolean i1=false;
+				for(InternationalHighRisklist rl3:lrl1){
+					if(cardNo.equals(rl3.getCardno())){
+						c1=true;
+					}
+					if(email.equals(rl3.getEmail())){
+						e1=true;
+					}
+					if(ip.equals(rl3.getIp())){
+						i1=true;
+					}
+				}
+				//如果不是因为卡号，邮箱，ip在InternationalHighRisklist查到有记录的（表里还有好多属性），这样做的目的是可能是钓鱼用了新的卡号，ip，邮箱
+				if(c1.equals(Boolean.FALSE)||e1.equals(Boolean.FALSE)||i1.equals(Boolean.FALSE)){
+					r2.setCardno(cardNo);
+					r2.setEmail(email);
+					r2.setIp(ip);
+					r2.setMerId(merchant.getMerno());
+					r2.setTradeUrl(tradeInfo.getTradeUrl());
+					r2.setPhone(phone);
+					r2.setOperator("system");
+					r2.setCreateDate(new Date());
+					if(StringUtils.isNotBlank(redInfo)){
+						r2.setErrorColumn(redInfo);
+					}
+					r2.setIsQWeb(isQWeb);
+					r2.setIsWeb(isWeb);
+					commonService.save(r2);
+				}
+				logger.info("采集风险信息结束");
+				message = "Payment Declined！";
+				//交易直接取消并且国家在风控项目表里有过记录（international_riskitems）
+				if("1".equals(isWeb)&&isCountryVal1.equals(Boolean.TRUE)){
+					responseCode = 2;
+					remark = "Payment Declined！04";
+					tradeInfo.setTradeState("3"
+							+ tradeInfo.getTradeState().substring(1,
+									tradeInfo.getTradeState().length()));
+				}else{
+						responseCode = 19;
+						//交易直接取消
+						if("1".equals(isWeb)){
+							remark = "Payment Declined！05";
+						}else{
+							remark = "Payment Declined！01";
+						}
+						tradeInfo.setTradeState("2"
+								+ tradeInfo.getTradeState().substring(1,
+										tradeInfo.getTradeState().length()));
+				}
+				logger.info("返回状态码+++++++++" + responseCode);
+				tradeInfo.setRemark(remark);
+				this.commonService.update(tradeInfo);
+				shopManagerService.addTemporaryTradInfo(orderno, year, month,cvv2,country,MD5key, ip,"MSIE 10.0",remark);
+				EmailInfo emailinfo = new EmailInfo();
+				String mailinfo = emailinfo.getRiskInfoToSystem(merchant.getMerno(),merchantOrderNo,
+						ordercountValue,new Long(Currency),cardNo,email,ip,tradeInfo.getTradeUrl(),redInfo);
+				try {
+					// 发送邮件,如果发送失败插入数据库发送
+					CCSendMail.setSendMail("983321897@qq.com", mailinfo,
+							"sfepay@sfepay.com");
+					logger.info("风险信息邮件立马发出");
+				} catch (Exception ex) {
+					logger.error(ex);
+					logger.info("风险信息邮件发送失败");
+					return SUCCESS;
+				}
+				return SUCCESS;
+			}
+			logger.info("****风控等级之外结束防风险验证********");
+			
 			
 		//返回true是指能找到对应风控等级的商户号、卡号、ip、邮箱、网址、国家（第一等级返回true不等于false所有不进下列风控判断）
 		Boolean oneRisk=valWhiteList(merchant.getMerno()+"",cardNo,ip,email,tradeInfo.getTradeUrl(),country+","+bankCountry,"1");
@@ -3624,7 +3801,7 @@ public class SfePayAction extends BaseAction {
 				 masaM.setSignType("SHA256");
 				 masaM.setMerchantOrderNo(tradeInfo.getOrderNo());
 				 masaM.setGoodsName(card.getProductInfo());
-				 masaM.setGoodsDesc(card.getProductInfo());
+				 //masaM.setGoodsDesc(card.getProductInfo());
 				 masaM.setOrderExchange("2");
 				 masaM.setCurrencyCode("CNY");
 				 Double amountAndFee=tradeInfo.getRmbAmount();
@@ -3633,6 +3810,7 @@ public class SfePayAction extends BaseAction {
 					amountAndFee = (double) (Math.round((double) amountAndFee * 100) / 100.00);
 				 }
 				 masaM.setOrderAmount((int)(amountAndFee*100)+"");
+				 masaM.setGoodsDesc(card.getProductInfo() + " 1^newProduct 1^1 1^" + masaM.getOrderAmount() + " 1^" + tradeInfo.getTradeUrl());
 				 SimpleDateFormat sdf=new SimpleDateFormat("yyyyMMddHHmmss");
 				 Calendar msCalendar = Calendar.getInstance();
 				 msCalendar.add(Calendar.MINUTE,2); 
@@ -3869,7 +4047,7 @@ public class SfePayAction extends BaseAction {
 					//shopManagerService.addTemporaryTradInfo(trade.getOrderNo(), year, month,cvv2,country,MD5key, ip,"MSIE 10.0","MS"+masaM.getRes_errMsg());
 					logger.info("*********************支付结果返回码***************************"+responseCode);
 					return SUCCESS;		
-				}else if(bankBackRemark.toLowerCase().indexOf(msg.getInfo().toLowerCase())>=0){
+				}else if(bankBackRemark.toLowerCase().indexOf(msg.getInfo().toLowerCase())>=0&&noPending.equals(Boolean.FALSE)){
 					//"拒绝交易".equals(hm.getRes_message())||"银行通讯故障".equals(hm.getRes_message())||"交易超时".equals(hm.getRes_message())
 					this.responseCode = 19;
 
@@ -3924,7 +4102,12 @@ public class SfePayAction extends BaseAction {
 			msg.setSignature(md5.getMD5ofStr(md5Hash));
 			
 			msg.setProductSku1("ProductSku1");
-			msg.setProductName1(products);	
+			String pro=products.toString();
+			if(pro.indexOf("#")>=0||pro.indexOf("&")>=0){
+				pro = pro.replace("#", " ");
+				pro = pro.replace("&", " ");
+			}
+			msg.setProductName1(pro);
 			msg.setProductPrice1(amountAndFee+ "");
 			msg.setProductQuantity1("1");
 			msg.setShippingFirstName(shippingFirstName);
@@ -3991,7 +4174,7 @@ public class SfePayAction extends BaseAction {
 				
 				logger.info("*********************支付结果返回码***************************"+responseCode);
 				return SUCCESS;
-			}else if(bankBackRemark.toLowerCase().indexOf(msg.getReason().toLowerCase())>=0){
+			}else if(bankBackRemark.toLowerCase().indexOf(msg.getReason().toLowerCase())>=0&&noPending.equals(Boolean.FALSE)){
 				//"拒绝交易".equals(hm.getRes_message())||"银行通讯故障".equals(hm.getRes_message())||"交易超时".equals(hm.getRes_message())
 				this.responseCode = 19;
 
