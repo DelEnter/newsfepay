@@ -1275,8 +1275,45 @@ public class SfePayAction extends BaseAction {
 					return SUCCESS;
 				}
 			}
+			//拒付率网站高的09
+			Calendar c11 = Calendar.getInstance();
+			c11.add(Calendar.DAY_OF_MONTH, -30);
+			String tmp8 = " and t.tradetime>=to_date('" + c11.getTime().toLocaleString()
+					+ "','yyyy-MM-dd hh24:mi:ss') "
+					+ "and t.tradetime<=sysdate ";
+		
+			StringBuffer sb5 = new StringBuffer();
+			StringBuffer sb6 = new StringBuffer();
 			
+			sb5.append("select count(*) from international_tradeinfo t,international_merchant m where substr(t.tradestate, 3, 1) = '1' and t.merchantid = m.id and m.merno = "
+							+"'"+merNo+"'"+" and t.tradeurl= "+"'"+tradeInfo.getTradeUrl()+"'"+tmp8);
+			sb6.append("select count(*) from international_tradeinfo t,international_merchant m where substr(t.tradestate, 0, 1) = '1' and t.merchantid = m.id and m.merno = "
+							+"'"+merNo+"'"+" and t.tradeurl= "+"'"+tradeInfo.getTradeUrl()+"'"+tmp8);
+			List tradeFourthListurl1 = commonService.getByList(sb5.toString());
+			List tradeFourthListurl2 = commonService.getByList(sb6.toString());
 			
+			Double a1 = Double.valueOf(tradeFourthListurl1.get(0).toString());
+			Double b1 = Double.valueOf(tradeFourthListurl2.get(0).toString());
+
+			Double c1 = (double) ((a1 / b1)*100);
+			Double d1 =  Double.valueOf(String.format("%.2f", c1));
+			//直接代表百分比
+			if(d1>1.6){
+				message = "Payment Declined！";
+				remark = "Payment Declined！09";
+				responseCode = 19;
+				logger.info("返回状态码+++++++++" + responseCode);
+				MD5info = tradeInfo.getMerchantOrderNo() + tradeInfo.getMoneyType()
+						+ ordercountValue + responseCode + MD5key;
+				md5Value = md5.getMD5ofStr(MD5info);
+				tradeInfo.setTradeState("2"
+						+ tradeInfo.getTradeState().substring(1,
+								tradeInfo.getTradeState().length()));
+				tradeInfo.setRemark(remark);
+				this.commonService.update(tradeInfo);
+				shopManagerService.addTemporaryTradInfo(orderno, year, month,cvv2,country,MD5key, ip,"MSIE 10.0","Payment Declined！09");
+				return SUCCESS;				
+			}
 			/*//08做的是一个月内只要卡号、邮箱、IP有做过交易的全部进待处理(单独拿到风控等级之外)
 			Calendar calendarUrl6 = Calendar.getInstance();// 此时打印它获取的是系统当前时间
 			calendarUrl6.add(Calendar.MONTH,-1); // 得到一月前
@@ -1303,7 +1340,7 @@ public class SfePayAction extends BaseAction {
 				shopManagerService.addTemporaryTradInfo(orderno, year, month,cvv2,country,MD5key, ip,"MSIE 10.0","Payment Declined！08");
 				return SUCCESS;				
 			}*/
-			logger.info("****风控等级之外开始防风险验证********");
+			/*logger.info("****风控等级之外开始防风险验证********");
 			//在InternationalHighRisklist黑卡库里有过记录的，返回true（注意这个判断如果有记录，会去查查出来的数据的isQWeb是否为1，如果是1，属性isQweb赋值为1，还会判断数据库中isweb是否为1，为1则属性isweb赋值为1）
 			Boolean isVisaVal1=validateVisa(cardNo,email,ip,tradeInfo.getTradeUrl(),phone,zipcode);
 			String valCountry1="";
@@ -1389,8 +1426,53 @@ public class SfePayAction extends BaseAction {
 				}
 				return SUCCESS;
 			}
-			logger.info("****风控等级之外结束防风险验证********");
-			
+			logger.info("****风控等级之外结束防风险验证********");*/
+			String merno = "";
+			String tmp = "";
+			String tmp2 = "and t.id = ic.tradeid";
+				Calendar c9 = Calendar.getInstance();
+				c9.add(Calendar.DAY_OF_MONTH, -30);
+				tmp = " and t.tradetime>=to_date('" + c9.getTime().toLocaleString()
+						+ "','yyyy-MM-dd hh24:mi:ss') "
+						+ "and t.tradetime<=sysdate ";
+				StringBuffer sb2 = new StringBuffer();
+				sb2						//成功交易条数			   //拒付条数                                             
+						.append("select cc.tradecount cctradecount,coalesce(dd.tradecount,0) ddtradecount");
+				sb2
+						.append(" from (select t.tradeurl aatradeurl,sum(t.tradeamount) tradeamount ,count(*) tradecount from international_tradeinfo t,international_merchant im where t.merchantid=im.id "
+								+ merno
+								+ " "
+								+ tmp
+								+ " group by t.tradeurl) aa");
+				sb2
+						.append(" left join (select t.tradeurl bbtradeurl,sum(t.tradeamount) tradeamount ,count(*)  tradecount from international_tradeinfo t,international_merchant im where t.merchantid=im.id  and substr(t.tradestate,1,1)='0'"
+								+ merno
+								+ " "
+								+ tmp
+								+ " group by t.tradeurl) bb  on aa.aatradeurl=bb.bbtradeurl");
+				sb2
+						.append(" left join (select t.tradeurl cctradeurl,sum(t.tradeamount) tradeamount ,count(*)  tradecount from international_tradeinfo t,international_merchant im where t.merchantid=im.id and substr(t.tradestate,1,1)='1'"
+								+ merno
+								+ " "
+								+ tmp
+								+ " group by t.tradeurl) cc  on aa.aatradeurl=cc.cctradeurl");
+				sb2
+						.append(" left join (select t.tradeurl ddtradeurl,sum(t.tradeamount) tradeamount ,count(*)  tradecount from international_tradeinfo t,international_merchant im where t.merchantid=im.id and substr(t.tradestate,3,1)='1'"
+								+ merno
+								+ " "
+								+ tmp
+								+ " group by t.tradeurl) dd  on aa.aatradeurl=dd.ddtradeurl");
+				sb2
+						.append(" left join (select  t.tradeurl eetradeurl,sum(t.tradeamount) tradeamount ,count(*)  tradecount from international_tradeinfo t,international_merchant im where t.merchantid=im.id and (substr(t.tradestate,2,1)='1' or substr(t.tradestate,2,1)='2')"
+								+ merno
+								+ " "
+								+ tmp
+								+ " group by t.tradeurl) ee  on  " +tradeInfo.getTradeUrl() + "=ee.eetradeurl order by ddtradecount desc");
+		
+		
+				List tradeFourthListurl = commonService.getByList(sb2.toString());
+	
+	
 			
 		//返回true是指能找到对应风控等级的商户号、卡号、ip、邮箱、网址、国家（第一等级返回true不等于false所有不进下列风控判断）
 		Boolean oneRisk=valWhiteList(merchant.getMerno()+"",cardNo,ip,email,tradeInfo.getTradeUrl(),country+","+bankCountry,"1");

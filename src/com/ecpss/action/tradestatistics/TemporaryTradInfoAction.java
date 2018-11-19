@@ -107,6 +107,10 @@ public class TemporaryTradInfoAction extends BaseAction {
 	private String tradeNum;
 	private String tturl;
 	
+	private String d1;
+	private String d2;
+	private String d3;
+	
 	public String toTemporaryInfo(){
 		StringBuffer sb=new StringBuffer("select tt.id,tt.orderNo,it.tradeAmount,it.moneyType,it.rmbAmount,tt.createTime,ic,it.tradeUrl,tt.remark,it.merchantOrderNo from InternationalTemporaryTradInfo tt,InternationalTradeinfo it,InternationalCardholdersInfo ic where tt.orderNo=it.orderNo and it.id=ic.tradeId ");
 		if(StringUtils.isNotBlank(statusType)){
@@ -154,6 +158,81 @@ public class TemporaryTradInfoAction extends BaseAction {
 			tempDetail=commonService.getByList(sql);
 			getWebTradeDetail();
 		}
+		//InternationalTempTradInfo trade=(InternationalTempTradInfo) commonService.uniqueResult("from InternationalTempTradInfo where id='"+orderId.toString()+"'");
+		//30-60
+		String sql1 =  "select tt.orderNo from International_TempTradInfo tt where tt.id=' "+orderId+"'";
+		List tradelist = commonService.getByList(sql1.toString());
+		InternationalTradeinfo trade=(InternationalTradeinfo) commonService.uniqueResult("from InternationalTradeinfo where orderNo='"+tradelist.get(0).toString()+"'");
+		Calendar c11 = Calendar.getInstance();
+		c11.add(Calendar.DAY_OF_MONTH, -60);
+		Calendar c12 = Calendar.getInstance();
+		c12.add(Calendar.DAY_OF_MONTH, -30);
+		String tmp8 = " and t.tradetime>=to_date('" + c11.getTime().toLocaleString()
+				+ "','yyyy-MM-dd hh24:mi:ss') "
+				+ "and t.tradetime<=to_date('" + c12.getTime().toLocaleString()
+				+ "','yyyy-MM-dd hh24:mi:ss') ";
+	
+		StringBuffer sb5 = new StringBuffer();
+		StringBuffer sb6 = new StringBuffer();
+		String merNo = tradelist.get(0).toString().substring(0, 4);
+		sb5.append("select count(*) from international_tradeinfo t,international_merchant m where substr(t.tradestate, 3, 1) = '1' and t.merchantid = m.id and m.merno = "
+						+"'"+merNo+"'"+" and t.tradeurl= "+"'"+trade.getTradeUrl()+"'"+tmp8);
+		sb6.append("select count(*) from international_tradeinfo t,international_merchant m where substr(t.tradestate, 0, 1) = '1' and t.merchantid = m.id and m.merno = "
+						+"'"+merNo+"'"+" and t.tradeurl= "+"'"+trade.getTradeUrl()+"'"+tmp8);
+		List tradeFourthListurl1 = commonService.getByList(sb5.toString());
+		List tradeFourthListurl2 = commonService.getByList(sb6.toString());
+		
+		Double a1 = Double.valueOf(tradeFourthListurl1.get(0).toString());
+		Double b1 = Double.valueOf(tradeFourthListurl2.get(0).toString());
+
+		Double c1 = (double) ((a1 / b1)*100);
+		d1 =  String.format("%.2f", c1);
+		
+		//30Ìì
+		Calendar c13 = Calendar.getInstance();
+		c13.add(Calendar.DAY_OF_MONTH, -30);
+		String tmp9 = " and t.tradetime>=to_date('" + c13.getTime().toLocaleString()
+				+ "','yyyy-MM-dd hh24:mi:ss') "
+				+ "and t.tradetime<=sysdate ";
+	
+		StringBuffer sb7 = new StringBuffer();
+		StringBuffer sb8 = new StringBuffer();
+		
+		sb7.append("select count(*) from international_tradeinfo t,international_merchant m where substr(t.tradestate, 3, 1) = '1' and t.merchantid = m.id and m.merno = "
+						+"'"+merNo+"'"+" and t.tradeurl= "+"'"+trade.getTradeUrl()+"'"+tmp9);
+		sb8.append("select count(*) from international_tradeinfo t,international_merchant m where substr(t.tradestate, 0, 1) = '1' and t.merchantid = m.id and m.merno = "
+						+"'"+merNo+"'"+" and t.tradeurl= "+"'"+trade.getTradeUrl()+"'"+tmp9);
+		List tradeFourthListurl3 = commonService.getByList(sb7.toString());
+		List tradeFourthListurl4 = commonService.getByList(sb8.toString());
+		
+		Double a2 = Double.valueOf(tradeFourthListurl3.get(0).toString());
+		Double b2 = Double.valueOf(tradeFourthListurl4.get(0).toString());
+
+		Double c2 = (double) ((a2 / b2)*100);
+		d2 =  String.format("%.2f", c2);
+		
+		//60Ìì
+		Calendar c14 = Calendar.getInstance();
+		c14.add(Calendar.DAY_OF_MONTH, -60);
+		String tmp10 = " and t.tradetime>=to_date('" + c14.getTime().toLocaleString()
+				+ "','yyyy-MM-dd hh24:mi:ss') "
+				+ "and t.tradetime<=sysdate ";
+	
+		StringBuffer sb9 = new StringBuffer();
+		StringBuffer sb10 = new StringBuffer();
+		
+		sb9.append("select count(*) from international_tradeinfo t,international_merchant m where substr(t.tradestate, 3, 1) = '1' and t.merchantid = m.id and m.merno = "
+						+"'"+merNo+"'"+" and t.tradeurl= "+"'"+trade.getTradeUrl()+"'"+tmp10);
+		sb10.append("select count(*) from international_tradeinfo t,international_merchant m where substr(t.tradestate, 0, 1) = '1' and t.merchantid = m.id and m.merno = "
+						+"'"+merNo+"'"+" and t.tradeurl= "+"'"+trade.getTradeUrl()+"'"+tmp10);
+		List tradeFourthListurl5 = commonService.getByList(sb9.toString());
+		List tradeFourthListurl6 = commonService.getByList(sb10.toString());
+		
+		Double a3 = Double.valueOf(tradeFourthListurl5.get(0).toString());
+		Double b3 = Double.valueOf(tradeFourthListurl6.get(0).toString());
+
+		Double c3 = (double) ((a3 / b3)*100);
+		d3 =  String.format("%.2f", c3);				
 		return SUCCESS;
 	}
 	public String auditTemporaryInfo(){
@@ -3600,6 +3679,24 @@ public class TemporaryTradInfoAction extends BaseAction {
 	}
 	public void setTturl(String tturl) {
 		this.tturl = tturl;
+	}
+	public String getD1() {
+		return d1;
+	}
+	public void setD1(String d1) {
+		this.d1 = d1;
+	}
+	public String getD2() {
+		return d2;
+	}
+	public void setD2(String d2) {
+		this.d2 = d2;
+	}
+	public String getD3() {
+		return d3;
+	}
+	public void setD3(String d3) {
+		this.d3 = d3;
 	}
 
 }
